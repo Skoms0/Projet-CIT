@@ -81,6 +81,8 @@ class Client:
         self.master_ip = config.get("master_ip")
         self.token = config.get("token")
         self.ssh = Ssh(self.host, self.user, self.password)
+        if self.ssh.connect() == False :
+            raise RuntimeError(f"Connect Failed to master {self.host}, {self.role}")
 
     def connect(self):
         self.ssh.connect()
@@ -131,8 +133,6 @@ def deploy_cluster(cluster: List[dict]):
 
     primary_master_config = masters[0]  # Premier master = principal
     primary = Client(primary_master_config)
-    primary.connect()
-    primary.update_system()
     primary.deploy()  # déploie avec --cluster-init
     master_ip = primary.host
     token = primary.token
@@ -142,8 +142,6 @@ def deploy_cluster(cluster: List[dict]):
         if node_cfg["host"] == master_ip:
             continue  # déjà fait
         node = Client(node_cfg)
-        node.connect()
-        node.update_system()
         node.deploy(master_ip, token)
         node.ssh.close()
 
