@@ -6,8 +6,6 @@ Experimenting with k3d:
 
 - ```kubectl create namespace kafka```
 
-- ```kubectl apply -n kafka -f <filename of the kafka manifest>```
-
 - add to the manifest a pod for producing and consuming: 
 ```
 apiVersion: v1
@@ -36,7 +34,15 @@ spec:
   restartPolicy: Never
 ```
 
-Create a topic :
+- Install Strimzi :
+```
+kubectl apply -n kafka -f https://strimzi.io/install/latest?namespace=kafka
+```
+
+- Apply the manifest :
+```kubectl apply -n kafka -f <filename of the kafka manifest>```
+
+- Create a topic :
 
 ```
 kubectl exec -it kafka-producer -n kafka -- /opt/kafka/bin/kafka-topics.sh \
@@ -47,7 +53,7 @@ kubectl exec -it kafka-producer -n kafka -- /opt/kafka/bin/kafka-topics.sh \
   --replication-factor 1
 ```
 
-Enter in the producer node to send messages :
+- Enter in the producer node to send messages :
 
 ```
 kubectl exec -it kafka-producer -n kafka -- /opt/kafka/bin/kafka-console-producer.sh \
@@ -55,7 +61,7 @@ kubectl exec -it kafka-producer -n kafka -- /opt/kafka/bin/kafka-console-produce
   --topic test-topic
 ```
 
-Enter in the consumer node to read messages : 
+- Enter in the consumer node to read messages : 
 ```
 kubectl exec -it kafka-consumer -n kafka -- /opt/kafka/bin/kafka-console-consumer.sh \
   --bootstrap-server my-cluster-kafka-bootstrap:9092 \
