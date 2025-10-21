@@ -1,0 +1,3 @@
+[
+  {"type": "Nginx", "fichier": "nginx.yaml", "host": "any"},
+]
