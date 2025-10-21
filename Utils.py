@@ -1,16 +1,7 @@
 import paramiko
 from typing import Optional, Tuple, List
-
-
-import paramiko
-from typing import Optional, Tuple
 import os
-
-
-import os
-from typing import Tuple, Optional
-import paramiko
-
+import json
 class Ssh:
     def __init__(self, host: str, user: str, port: int = 22):
         self.host = host
@@ -145,11 +136,9 @@ def deploy_cluster(cluster: List[dict]):
 
 if __name__ == "__main__":
     # Exemple : aucune notion de "Principal Master" à définir
-    cluster_config = [
-        {"host": "192.168.1.10", "user": "pi", "password": "raspberry", "role": "Master"},
-        {"host": "192.168.1.11", "user": "pi", "password": "raspberry", "role": "Master"},
-        {"host": "192.168.1.12", "user": "pi", "password": "raspberry", "role": "Worker"},
-        {"host": "192.168.1.13", "user": "pi", "password": "raspberry", "role": "Worker"},
-    ]
+    with open('cluster_config.json', 'r') as file:
+        cluster_config = json.load(file)
+
+
 
     deploy_cluster(cluster_config)
