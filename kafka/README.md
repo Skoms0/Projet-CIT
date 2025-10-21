@@ -8,6 +8,33 @@ Experimenting with k3d:
 
 - ```kubectl apply -n kafka -f <filename of the kafka manifest>```
 
+- add to the manifest a pod for producing and consuming: 
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kafka-producer
+  namespace: kafka
+spec:
+  containers:
+    - name: kafka-producer
+      image: quay.io/strimzi/kafka:latest-kafka-4.1.0
+      command: ["sleep", "infinity"]
+  restartPolicy: Never
+  
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kafka-consumer
+  namespace: kafka
+spec:
+  containers:
+    - name: kafka-consumer
+      image: quay.io/strimzi/kafka:latest-kafka-4.1.0
+      command: ["sleep", "infinity"]
+  restartPolicy: Never
+```
 
 Create a topic :
 
