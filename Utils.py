@@ -42,10 +42,6 @@ class Ssh:
             return False
 
     def run(self, command: str, verbose: bool = False) -> Tuple[int, str, str]:
-        """
-        Run a command on the remote host.
-        If verbose=True, streams stdout and stderr live.
-        """
         if self.client is None:
             raise RuntimeError("Not connected. Call connect() first.")
 
@@ -63,7 +59,7 @@ class Ssh:
                     line = stderr.channel.recv_stderr(1024).decode("utf-8")
                     print(f"[{self.host}][ERR] {line}", end="")
                     err_lines.append(line)
-            # Capture any remaining output
+            # capture any remaining output
             out_lines.append(stdout.read().decode("utf-8"))
             err_lines.append(stderr.read().decode("utf-8"))
         else:
@@ -128,7 +124,7 @@ class Client:
         self.ssh.run(cmd, verbose)
 
 # ------------------------------
-# Helper for multithreaded node deployment
+# Deploy node in parallel
 # ------------------------------
 def deploy_node(node_cfg: dict, master_ip: str, token: str, verbose: bool = False):
     node = Client(node_cfg)
@@ -140,7 +136,6 @@ def deploy_node(node_cfg: dict, master_ip: str, token: str, verbose: bool = Fals
 # Cluster Deployment
 # ------------------------------
 def deploy_cluster(cluster: List[dict], verbose: bool = False) -> Client:
-    # Find primary master
     masters = [c for c in cluster if c["role"].lower() == "master"]
     if not masters:
         raise ValueError("No master found in configuration!")
@@ -151,15 +146,11 @@ def deploy_cluster(cluster: List[dict], verbose: bool = False) -> Client:
     master_ip = primary.host
     token = primary.token
 
-    # Deploy other nodes in parallel
     other_nodes = [c for c in cluster if c["host"] != master_ip]
     if other_nodes:
         print("\nDeploying other nodes...")
         with ThreadPoolExecutor(max_workers=len(other_nodes)) as executor:
-            futures = {
-                executor.submit(deploy_node, cfg, master_ip, token, verbose): cfg["host"]
-                for cfg in other_nodes
-            }
+            futures = {executor.submit(deploy_node, cfg, master_ip, token, verbose): cfg["host"] for cfg in other_nodes}
             for future in tqdm(as_completed(futures), total=len(futures), desc="Deploying nodes"):
                 host = future.result()
                 print(f"{host} deployed successfully")
@@ -168,7 +159,7 @@ def deploy_cluster(cluster: List[dict], verbose: bool = False) -> Client:
     return primary
 
 # ------------------------------
-# App Deployment (host-specific)
+# Deploy apps (with sudo for kubectl)
 # ------------------------------
 def deploy_apps(cluster_nodes: List[Client], app_file: str = "app.json", verbose: bool = True):
     import os
@@ -190,15 +181,13 @@ def deploy_apps(cluster_nodes: List[Client], app_file: str = "app.json", verbose
             print(f"{app_type}: YAML file {yaml_path} not found, skipping.")
             continue
 
+        # Always use sudo to fix permission issues
+        cmd = f"sudo kubectl apply -f {yaml_path}"
+
         if target_host == "any":
             primary_master = cluster_nodes[0]
             print(f"{app_type}: Deploying to primary master...")
-            cmd = f"kubectl apply -f {yaml_path}"
             code, out, err = primary_master.ssh.run(cmd, verbose=verbose)
-            if code == 0:
-                print(f"{app_type} deployed successfully:\n{out}")
-            else:
-                print(f"{app_type} deployment failed:\n{err}")
         else:
             matched_nodes = [node for node in cluster_nodes if node.host == target_host]
             if not matched_nodes:
@@ -206,12 +195,12 @@ def deploy_apps(cluster_nodes: List[Client], app_file: str = "app.json", verbose
                 continue
             node = matched_nodes[0]
             print(f"{app_type}: Deploying to {node.host}...")
-            cmd = f"kubectl apply -f {yaml_path}"
             code, out, err = node.ssh.run(cmd, verbose=verbose)
-            if code == 0:
-                print(f"{app_type} deployed successfully on {node.host}:\n{out}")
-            else:
-                print(f"{app_type} deployment failed on {node.host}:\n{err}")
+
+        if code == 0:
+            print(f"{app_type} deployed successfully:\n{out}")
+        else:
+            print(f"{app_type} deployment failed:\n{err}")
 
 # ------------------------------
 # Main
@@ -233,5 +222,5 @@ if __name__ == "__main__":
     deploy_apps(cluster_nodes, app_file="app.json", verbose=True)
 
     # Example: run kubectl command interactively
-    code, out, err = primary_master.ssh.run("kubectl get pods --all-namespaces", verbose=True)
+    code, out, err = primary_master.ssh.run("sudo kubectl get pods --all-namespaces", verbose=True)
     print(out)
