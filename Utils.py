@@ -7,19 +7,21 @@ from typing import Optional, Tuple
 import os
 
 
+import os
+from typing import Tuple, Optional
+import paramiko
+
 class Ssh:
-    def __init__(self, host: str, user: str, password: Optional[str] = None, port: int = 22):
-     
+    def __init__(self, host: str, user: str, port: int = 22):
         self.host = host
         self.user = user
-        self.password = password
         self.port = port
         self.client: Optional[paramiko.SSHClient] = None
 
-        # Define key path relative to project
+        # Path to private key
         self.key_file = os.path.join(os.path.dirname(__file__), "key", "id_rsa")
         if not os.path.exists(self.key_file):
-            self.key_file = None  # fallback to password if key not found
+            raise FileNotFoundError(f"Key file not found: {self.key_file}")
 
     def connect(self) -> bool:
         if self.client is not None:
@@ -29,21 +31,15 @@ class Ssh:
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         try:
-            if self.key_file:
-                key = paramiko.RSAKey.from_private_key_file(self.key_file, password=self.password)
-                self.client.connect(
-                    hostname=self.host,
-                    port=self.port,
-                    username=self.user,
-                    pkey=key
-                )
-            else:
-                self.client.connect(
-                    hostname=self.host,
-                    port=self.port,
-                    username=self.user,
-                    password=self.password
-                )
+            key = paramiko.RSAKey.from_private_key_file(self.key_file)
+            self.client.connect(
+                hostname=self.host,
+                port=self.port,
+                username=self.user,
+                pkey=key,
+                look_for_keys=False,
+                allow_agent=False
+            )
             print(f"[V] Connected to {self.host}")
             return True
         except Exception as e:
@@ -54,9 +50,6 @@ class Ssh:
     def run(self, command: str) -> Tuple[int, str, str]:
         if self.client is None:
             raise RuntimeError("Not connected. Call connect() first.")
-
-        if command.strip().startswith("sudo ") and self.password:
-            command = f"echo '{self.password}' | sudo -S {command[5:]}"
 
         stdin, stdout, stderr = self.client.exec_command(command)
         exit_code = stdout.channel.recv_exit_status()
