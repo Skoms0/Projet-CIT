@@ -6,7 +6,7 @@ Experimenting with k3d:
 
 - ```kubectl create namespace kafka```
 
-- ```kubectl apply -n kafka -f <filename of the kafka manifest>
+- ```kubectl apply -n kafka -f <filename of the kafka manifest>```
 
 
 Create a topic :
