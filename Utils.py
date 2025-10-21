@@ -59,7 +59,6 @@ class Ssh:
                     line = stderr.channel.recv_stderr(1024).decode("utf-8")
                     print(f"[{self.host}][ERR] {line}", end="")
                     err_lines.append(line)
-            # capture any remaining output
             out_lines.append(stdout.read().decode("utf-8"))
             err_lines.append(stderr.read().decode("utf-8"))
         else:
@@ -74,6 +73,13 @@ class Ssh:
             self.client.close()
             self.client = None
             print(f"Disconnected from {self.host}")
+
+    def upload(self, local_path: str, remote_path: str):
+        if self.client is None:
+            raise RuntimeError("Not connected. Call connect() first.")
+        sftp = self.client.open_sftp()
+        sftp.put(local_path, remote_path)
+        sftp.close()
 
 # ------------------------------
 # Client (Cluster Node) Class
@@ -159,7 +165,7 @@ def deploy_cluster(cluster: List[dict], verbose: bool = False) -> Client:
     return primary
 
 # ------------------------------
-# Deploy apps (with sudo for kubectl)
+# Deploy apps (upload YAMLs first)
 # ------------------------------
 def deploy_apps(cluster_nodes: List[Client], app_file: str = "app.json", verbose: bool = True):
     import os
@@ -181,12 +187,13 @@ def deploy_apps(cluster_nodes: List[Client], app_file: str = "app.json", verbose
             print(f"{app_type}: YAML file {yaml_path} not found, skipping.")
             continue
 
-        # Always use sudo to fix permission issues
-        cmd = f"sudo kubectl apply -f {yaml_path}"
+        remote_path = f"/tmp/{yaml_file}"
 
         if target_host == "any":
             primary_master = cluster_nodes[0]
-            print(f"{app_type}: Deploying to primary master...")
+            print(f"{app_type}: Uploading {yaml_file} to primary master...")
+            primary_master.ssh.upload(yaml_path, remote_path)
+            cmd = f"sudo kubectl apply -f {remote_path}"
             code, out, err = primary_master.ssh.run(cmd, verbose=verbose)
         else:
             matched_nodes = [node for node in cluster_nodes if node.host == target_host]
@@ -194,7 +201,9 @@ def deploy_apps(cluster_nodes: List[Client], app_file: str = "app.json", verbose
                 print(f"{app_type}: No node found with host {target_host}, skipping.")
                 continue
             node = matched_nodes[0]
-            print(f"{app_type}: Deploying to {node.host}...")
+            print(f"{app_type}: Uploading {yaml_file} to {node.host}...")
+            node.ssh.upload(yaml_path, remote_path)
+            cmd = f"sudo kubectl apply -f {remote_path}"
             code, out, err = node.ssh.run(cmd, verbose=verbose)
 
         if code == 0:
