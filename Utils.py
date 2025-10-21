@@ -86,8 +86,7 @@ class Client:
         self.ssh.connect()
 
     def update_system(self):
-        print(f"[{self.host}] Updating system packages...")
-        self.ssh.run("sudo apt-get update -y && sudo apt-get upgrade -y")
+        print(f"[{self.host}] Connected...")
 
     def deploy(self, master_ip: Optional[str] = None, token: Optional[str] = None):
         if self.role == "Master" and master_ip is None:

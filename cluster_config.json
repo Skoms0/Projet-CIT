@@ -1,5 +1,7 @@
 [
-  {"host": "192.168.1.10", "user": "pi", "password": "raspberry", "role": "Master"},
-  {"host": "192.168.1.11", "user": "pi", "password": "raspberry", "role": "Worker"},
-  {"host": "192.168.1.12", "user": "pi", "password": "raspberry", "role": "Worker"}
+  {"host": "10.0.1.62", "user": "pi", "password": "raspberry", "role": "Master"},
+  {"host": "10.0.1.63", "user": "pi", "password": "raspberry", "role": "Master"},
+   {"host": "10.0.1.64", "user": "pi", "password": "raspberry", "role": "Master"},
+  {"host": "10.0.1.61", "user": "pi", "password": "raspberry", "role": "Worker"},
+  {"host": "10.0.1.65", "user": "pi", "password": "raspberry", "role": "Worker"}
 ]
