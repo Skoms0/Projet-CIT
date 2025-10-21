@@ -64,7 +64,7 @@ class Client:
         self.role = config["role"]  # "Master" or "Worker"
         self.master_ip = config.get("master_ip")
         self.token = config.get("token")
-        self.ssh = Ssh(self.host, self.user, self.password)
+        self.ssh = Ssh(self.host, self.user)  
         if self.ssh.connect() == False :
             raise RuntimeError(f"Connect Failed to master {self.host}, {self.role}")
 
