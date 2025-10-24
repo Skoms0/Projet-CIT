@@ -12,6 +12,8 @@ MQTT (*Message Queuing Telemetry Transport*) est un protocole léger basé sur l
 
 `[Publisher] → (Broker) → [Subscriber]`
 
+![Schéma MQTT](schemaMQTT.png)
+
 
 - **Publisher** : envoie les messages (ici, les images capturées)
 - **Subscriber** : s’abonne et reçoit les messages
@@ -46,6 +48,14 @@ pip3 install paho-mqtt
 sudo systemctl enable mosquitto
 sudo systemctl start mosquitto
 ```
+
+Il faut aussi autoriser l'utilisation de la caméra avec raspistill : 
+
+```bash
+sudo raspi-config
+```
+
+Puis aller dans : Interface Options → Legacy Camera → Enable. Une fois cela fait reboot le raspberry.
 
 ### PC local
 

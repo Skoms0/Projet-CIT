@@ -14,8 +14,7 @@ import os
 # --------------------------------
 # Configuration MQTT
 
-# - broker : adresse du serveur MQTT (ex : "localhost" si Mosquitto est sur ce Raspberry,
-#            ou "10.0.1.13" si le broker est distant)
+# - broker : adresse du serveur MQTT (ex : "localhost" si Mosquitto est sur ce Raspberry ou "10.0.1.13" si le broker est distant)
 # - port : port utilisé par le broker (par défaut 1883)
 # - topic : nom du canal où seront envoyées les images
 broker = "localhost"
@@ -28,6 +27,7 @@ tmp_file = "/tmp/frame.jpg"
 
 
 # --------------------------------
+# capturer une image fixe avec la commande raspistill
 def capture_image():
     subprocess.run([
         "raspistill",
@@ -41,6 +41,7 @@ def capture_image():
 
 
 # --------------------------------
+# Encodage en base64
 def encode_image():
     with open(tmp_file, "rb") as f:
         data = f.read()
