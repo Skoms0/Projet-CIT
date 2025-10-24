@@ -5,7 +5,6 @@
 # pip install -r requirements.txt
 # ===============================================
 
-import os
 import time
 import base64
 import numpy as np
