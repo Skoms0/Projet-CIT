@@ -1,6 +1,6 @@
 # ===============================================
 # Détection de personnes en temps réel
-# Kafka (images encodées) → TensorFlow Lite → OpenCV
+# Kafka (images encodées) → TensorFlow Lite → Kafka (images traitées)
 # Compatible Windows / macOS / Linux
 # pip install -r requirements.txt
 # ===============================================
@@ -11,17 +11,16 @@ import base64
 import numpy as np
 import cv2
 import tensorflow as tf
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 
 # ==================== PARAMÈTRES ====================
 MODEL_PATH = "efficientdet_lite0.tflite"                               # Modèle TFLite
 KAFKA_SERVER = ["10.0.1.52:9092", "10.0.1.53:9092", "10.0.1.54:9092"]  # Brokers Kafka
-KAFKA_TOPIC = "a_completer"                                            # Nom du topic Kafka
+KAFKA_TOPIC_INPUT = "test/topic"                                       # Topic d'entrée
+KAFKA_TOPIC_OUTPUT = "processed/frames"                                # Topic de sortie
 NUM_THREADS = 4
 SCORE_THRESHOLD = 0.3
 FILTER_PERSON_ONLY = True
-SAVE_DIR = "output_frames"       # Dossier de sauvegarde
-SAVE_EVERY = 1                   # Sauvegarder chaque N frames
 
 LABELS = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus",
@@ -75,23 +74,29 @@ def main():
     print("=======================================")
     print("Détection de personnes en temps réel")
     print(f"Modèle : {MODEL_PATH}")
-    print(f"Kafka : {KAFKA_SERVER}")
-    print(f"Topic : {KAFKA_TOPIC}")
+    print(f"Kafka (entrée) : {KAFKA_TOPIC_INPUT}")
+    print(f"Kafka (sortie) : {KAFKA_TOPIC_OUTPUT}")
     print("=======================================")
 
-    # Création du dossier de sauvegarde
-    os.makedirs(SAVE_DIR, exist_ok=True)
-
-    # Chargement du modèle et initialisation Kafka
+    # Chargement du modèle
     interpreter = build_interpreter(MODEL_PATH, NUM_THREADS)
+
+    # Initialisation Kafka Consumer (input)
     consumer = KafkaConsumer(
-        KAFKA_TOPIC,
+        KAFKA_TOPIC_INPUT,
         bootstrap_servers=KAFKA_SERVER,
         auto_offset_reset="latest",
         enable_auto_commit=True,
         group_id="tflite_display"
     )
-    print("[OK] Modèle chargé et Kafka connecté.")
+
+    # Initialisation Kafka Producer (output)
+    producer = KafkaProducer(
+        bootstrap_servers=KAFKA_SERVER,
+        value_serializer=lambda v: v.encode("utf-8")
+    )
+
+    print("[OK] Kafka connecté (entrée + sortie).")
     print("Appuyez sur 'ESC' pour quitter.")
 
     cnt, fps, t0 = 0, 0.0, time.time()
@@ -104,22 +109,23 @@ def main():
             frame = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)
             if frame is None:
                 continue
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # Inférence
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             boxes, classes, scores = detect_objects(interpreter, rgb)
 
             # Visualisation
             frame = visualize(frame, boxes, classes, scores, LABELS,
                               threshold=SCORE_THRESHOLD, person_only=FILTER_PERSON_ONLY)
 
-            # Sauvegarde de l'image traitée
-            if cnt % SAVE_EVERY == 0:
-                timestamp = int(time.time() * 1000)
-                filename = os.path.join(SAVE_DIR, f"frame_{timestamp}.jpg")
-                cv2.imwrite(filename, frame)
+            # Encodage image traitée en base64 pour Kafka
+            _, jpeg_bytes = cv2.imencode('.jpg', frame)
+            encoded_frame = base64.b64encode(jpeg_bytes).decode("utf-8")
 
-            # FPS
+            # Envoi dans un nouveau topic
+            producer.send(KAFKA_TOPIC_OUTPUT, value=encoded_frame)
+
+            # FPS + affichage
             cnt += 1
             if cnt % AVG_WIN == 0:
                 t1 = time.time()
@@ -128,15 +134,16 @@ def main():
             cv2.putText(frame, f"FPS: {fps:.1f}", (10, 28),
                         cv2.FONT_HERSHEY_PLAIN, 1.4, (0, 0, 255), 2)
 
-            # Affichage
-            cv2.imshow("Person Detection (Kafka + TensorFlow Lite)", frame)
-            if cv2.waitKey(1) == 27:  # ESC pour quitter
+            cv2.imshow("Person Detection (Kafka In/Out)", frame)
+            if cv2.waitKey(1) == 27:
                 break
 
         except Exception as e:
             print("[ERREUR]", e)
 
     cv2.destroyAllWindows()
+    producer.flush()
+    producer.close()
 
 if __name__ == "__main__":
     main()
