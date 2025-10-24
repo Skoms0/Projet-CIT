@@ -15,7 +15,7 @@ from kafka import KafkaConsumer, KafkaProducer
 # ==================== PARAMÈTRES ====================
 MODEL_PATH = "efficientdet_lite0.tflite"                               # Modèle TFLite
 KAFKA_SERVER = ["10.0.1.52:9092", "10.0.1.53:9092", "10.0.1.54:9092"]  # Brokers Kafka
-KAFKA_TOPIC_INPUT = "test/topic"                                       # Topic d'entrée
+KAFKA_TOPIC_INPUT = "camera/image"                                     # Topic d'entrée
 KAFKA_TOPIC_OUTPUT = "processed/frames"                                # Topic de sortie
 NUM_THREADS = 4
 SCORE_THRESHOLD = 0.3
@@ -92,7 +92,9 @@ def main():
     # Initialisation Kafka Producer (output)
     producer = KafkaProducer(
         bootstrap_servers=KAFKA_SERVER,
-        value_serializer=lambda v: v.encode("utf-8")
+        value_serializer=lambda v: v.encode("utf-8"),
+        retries=3,
+        linger_ms=10
     )
 
     print("[OK] Kafka connecté (entrée + sortie).")
@@ -121,9 +123,14 @@ def main():
             _, jpeg_bytes = cv2.imencode('.jpg', frame)
             encoded_frame = base64.b64encode(jpeg_bytes).decode("utf-8")
 
-            # Envoi dans un nouveau topic
-            producer.send(KAFKA_TOPIC_OUTPUT, value=encoded_frame)
-
+            # Envoi dans un nouveau topic (avec confirmation d’envoi)
+            future = producer.send(KAFKA_TOPIC_OUTPUT, value=encoded_frame)
+            try:
+                record_metadata = future.get(timeout=5)  # attente de confirmation
+                print(f"[OK] Image envoyée à {record_metadata.topic} partition {record_metadata.partition} offset {record_metadata.offset}")
+            except Exception as send_err:
+                print("[ERREUR envoi Kafka]", send_err)
+                
             # FPS + affichage
             cnt += 1
             if cnt % AVG_WIN == 0:
