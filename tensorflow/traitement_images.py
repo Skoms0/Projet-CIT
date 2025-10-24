@@ -5,6 +5,7 @@
 # pip install -r requirements.txt
 # ===============================================
 
+import os
 import time
 import base64
 import numpy as np
@@ -13,12 +14,14 @@ import tensorflow as tf
 from kafka import KafkaConsumer
 
 # ==================== PARAMÈTRES ====================
-MODEL_PATH = "efficientdet_lite0.tflite"   # Modèle TFLite
-KAFKA_SERVER = "a_completer"               # Adresse du broker Kafka
-KAFKA_TOPIC = "a_completer"                # Nom du topic Kafka
+MODEL_PATH = "efficientdet_lite0.tflite"                               # Modèle TFLite
+KAFKA_SERVER = ["10.0.1.52:9092", "10.0.1.53:9092", "10.0.1.54:9092"]  # Brokers Kafka
+KAFKA_TOPIC = "a_completer"                                            # Nom du topic Kafka
 NUM_THREADS = 4
 SCORE_THRESHOLD = 0.3
 FILTER_PERSON_ONLY = True
+SAVE_DIR = "output_frames"       # Dossier de sauvegarde
+SAVE_EVERY = 1                   # Sauvegarder chaque N frames
 
 LABELS = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus",
@@ -76,6 +79,9 @@ def main():
     print(f"Topic : {KAFKA_TOPIC}")
     print("=======================================")
 
+    # Création du dossier de sauvegarde
+    os.makedirs(SAVE_DIR, exist_ok=True)
+
     # Chargement du modèle et initialisation Kafka
     interpreter = build_interpreter(MODEL_PATH, NUM_THREADS)
     consumer = KafkaConsumer(
@@ -107,6 +113,12 @@ def main():
             frame = visualize(frame, boxes, classes, scores, LABELS,
                               threshold=SCORE_THRESHOLD, person_only=FILTER_PERSON_ONLY)
 
+            # Sauvegarde de l'image traitée
+            if cnt % SAVE_EVERY == 0:
+                timestamp = int(time.time() * 1000)
+                filename = os.path.join(SAVE_DIR, f"frame_{timestamp}.jpg")
+                cv2.imwrite(filename, frame)
+
             # FPS
             cnt += 1
             if cnt % AVG_WIN == 0:
@@ -118,7 +130,7 @@ def main():
 
             # Affichage
             cv2.imshow("Person Detection (Kafka + TensorFlow Lite)", frame)
-            if cv2.waitKey(1) == 27:
+            if cv2.waitKey(1) == 27:  # ESC pour quitter
                 break
 
         except Exception as e:
