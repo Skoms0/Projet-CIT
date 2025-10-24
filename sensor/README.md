@@ -28,6 +28,17 @@ Avantages :
 ## 🧩 Installation
 
 ### Raspberry Pi
+
+Pour se connecter au Raspberry Pi, veuillez vous réferer à la documentation youpi.citi : https://youpi.citi.insa-lyon.fr/youpiDoc/youpi/registration/registration.html
+
+Il faut réserver un appareil sur youpi.citi, dans cette exemple nous utilison le Raspberry 3B 10.0.1.2, puis pour se connecter au Raspberry en ssh :
+
+```bash
+ssh 10.0.1.2
+```
+
+Installations nécessaires (peut prendre beaucoup de temps): 
+
 ```bash
 sudo apt update
 sudo apt install mosquitto mosquitto-clients python3-opencv python3-pip -y
@@ -38,14 +49,14 @@ sudo systemctl start mosquitto
 
 ### PC local
 
+Installations nécessaires :
+
 ```bash
 sudo apt install python3-opencv python3-pip -y
 pip3 install paho-mqtt
 ```
 
-## 🔐 Connexion SSH
-
-Créer un tunnel entre ton PC et le Raspberry :
+ Il faut également créer un tunnel entre ton PC et le Raspberry pour une connexion SSH:
 
 ```bash
 ssh -fN -L 18830:10.0.1.2:1883 khamul
@@ -67,4 +78,4 @@ python3 client_receive.py
 python3 client_send.py
 ```
 
-Le flux s’affiche en direct et se met à jour toutes les 2 secondes.
+Le flux s’affiche en direct et se met à jour toutes les 5 secondes.
