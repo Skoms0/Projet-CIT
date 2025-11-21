@@ -9,7 +9,7 @@ import base64
 # --------------------------------
 # Configuration MQTT
 
-# - broker : adresse du serveur MQTT (ici "localhost" car on passe par un tunnel SSH)
+# - broker : adresse du serveur MQTT (ici "localhost" car on passe par un tunnel SSH, "10.0.1.52" si le broker est accessible directement)
 # - port : port local du tunnel (ex : 18830 redirigé vers 10.0.1.2:1883)
 # - topic : canal sur lequel les images sont publiées par le Raspberry
 BROKER = "localhost"

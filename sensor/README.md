@@ -49,13 +49,24 @@ sudo systemctl enable mosquitto
 sudo systemctl start mosquitto
 ```
 
-Il faut aussi autoriser l'utilisation de la caméra avec raspistill : 
+Ajouter les deux lignes suivantes dans `/etc/mosquitto/mosquitto.conf`: 
+```bash
+listener 1883
+allow_anonymous true
+```
+
+Redémarrer mosquitto
+```bash
+sudo systemctl restart mosquitto
+```
+
+Il faut aussi autoriser l'utilisation de la caméra avec raspistill si ce n'est pas le cas: 
 
 ```bash
 sudo raspi-config
 ```
 
-Puis aller dans : Interface Options → Legacy Camera → Enable. Une fois cela fait reboot le raspberry.
+Puis aller dans Interface Options → Legacy Camera → Enable. Une fois cela fait reboot le raspberry.
 
 ### PC local
 

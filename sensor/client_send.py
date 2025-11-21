@@ -14,7 +14,7 @@ import os
 # --------------------------------
 # Configuration MQTT
 
-# - broker : adresse du serveur MQTT (ex : "localhost" si Mosquitto est sur ce Raspberry ou "10.0.1.13" si le broker est distant)
+# - broker : adresse du serveur MQTT (ex : "localhost" si Mosquitto est sur ce Raspberry ou "10.0.1.52" si le broker est distant)
 # - port : port utilisé par le broker (par défaut 1883)
 # - topic : nom du canal où seront envoyées les images
 broker = "localhost"
