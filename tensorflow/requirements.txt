@@ -3,3 +3,4 @@ ml-dtypes==0.2.0
 numpy==1.26.4
 opencv-python==4.9.0.80
 kafka-python==2.2.15
+pyspark
