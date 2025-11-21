@@ -49,13 +49,24 @@ sudo systemctl enable mosquitto
 sudo systemctl start mosquitto
 ```
 
-Il faut aussi autoriser l'utilisation de la caméra avec raspistill : 
+Ajouter les deux lignes suivantes dans `/etc/mosquitto/mosquitto.conf`: 
+```bash
+listener 1883
+allow_anonymous true
+```
+
+Redémarrer mosquitto
+```bash
+sudo systemctl restart mosquitto
+```
+
+Il faut aussi autoriser l'utilisation de la caméra avec raspistill si ce n'est pas le cas: 
 
 ```bash
 sudo raspi-config
 ```
 
-Puis aller dans : Interface Options → Legacy Camera → Enable. Une fois cela fait reboot le raspberry.
+Puis aller dans Interface Options → Legacy Camera → Enable. Une fois cela fait reboot le raspberry.
 
 ### PC local
 
@@ -89,3 +100,9 @@ python3 client_send.py
 ```
 
 Le flux s’affiche en direct et se met à jour toutes les 5 secondes.
+
+
+## utilisation de send_image.py
+```python
+python3 send.py --image image.jpg
+```
