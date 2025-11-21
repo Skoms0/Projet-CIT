@@ -96,13 +96,7 @@ python3 client_receive.py
 ### Sur le Raspberry :
 
 ```python
-python3 client_send.py
+python3 send_image.py --image image.jpg
 ```
 
-Le flux s’affiche en direct et se met à jour toutes les 5 secondes.
-
-
-## utilisation de send_image.py
-```python
-python3 send.py --image image.jpg
-```
+Le flux d’images s’affiche en direct sur le PC à chaque nouvelle capture.
