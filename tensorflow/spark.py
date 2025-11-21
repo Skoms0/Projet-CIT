@@ -25,17 +25,27 @@ KAFKA_SERVERS = "kafka_server"             # TODO: use real server
 # Création du UDF Spark
 def create_udf():
 
-    # Chargement du modèle TFLite
-    interpreter = build_interpreter(MODEL_PATH, num_threads=4)
-
-    # Fonction interne exécutée pour chaque message Kafka
     def udf_fn(image_bytes):
+
         if image_bytes is None:
             return None
-        # Exécution de l'inférence complète : bytes → image → détection → bytes
-        return run_inference_bytes(interpreter, image_bytes, LABELS)
 
-    # Encapsulation dans un UDF Spark, retour : BinaryType (bytes)
+        # Lazy loading du modèle dans chaque worker Spark
+        if not hasattr(udf_fn, "interpreter"):
+            print("Loading TFLite model inside Spark worker...")
+            udf_fn.interpreter = build_interpreter(MODEL_PATH, num_threads=4)
+
+        # Rappel de l’inférence sur les bytes de l’image
+        processed_bytes = run_inference_bytes(
+            udf_fn.interpreter,
+            image_bytes,
+            LABELS,
+            threshold=0.3,
+            person_only=True
+        )
+
+        return processed_bytes
+
     return udf(udf_fn, BinaryType())
 
 

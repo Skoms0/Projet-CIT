@@ -13,7 +13,7 @@ Le module permet :
 - l’annotation (bounding boxes),
 - l’intégration dans Spark via un **UDF**.
 
----
+
 
 ## Structure des fichiers
 
@@ -28,7 +28,7 @@ Le module permet :
 - Applique l’inférence via un UDF Spark
 - Renvoie les images annotées dans `processed/frames`
 
----
+
 
 ## Installation
 
@@ -40,7 +40,6 @@ pip install -r requirements.txt
 
 ---
 
-## Java Requirement
 Ce projet utilise Spark. Il nécessite obligatoirement :
 
 - Java 17 (OpenJDK / Temurin)
@@ -55,6 +54,39 @@ java -version
 Doit afficher une version 17.x.
 
 ---
+
+Ce projet utilise aussi 3 fichiers .jar :
+
+1. spark-sql-kafka-0-10_2.13-3.5.0.jar
+https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.13/3.5.0/spark-sql-kafka-0-10_2.13-3.5.0.jar
+
+2. spark-token-provider-kafka-0-10_2.13-3.5.0.jar
+https://repo1.maven.org/maven2/org/apache/spark/spark-token-provider-kafka-0-10_2.13/3.5.0/spark-token-provider-kafka-0-10_2.13-3.5.0.jar
+
+3. kafka-clients-3.5.0.jar
+https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.5.0/kafka-clients-3.5.0.jar
+
+Dans PowerShell, exécuter :
+
+```bash
+python
+```
+```bash
+import pyspark, os
+print(os.path.dirname(pyspark.__file__))
+```
+
+La sortie sera du type :
+
+`C:\Users\xxx\AppData\Local\Programs\Python\Python311\Lib\site-packages\pyspark`
+
+Ouvrir ensuite :
+
+`pyspark\jars`
+
+C’est dans ce dossier que les JAR Kafka doivent être copiés.
+
+
 
 ## Exécution
 
@@ -72,7 +104,7 @@ les topics existent,
 
 les images arrivent dans `input/images`.
 
----
+
 
 ## Résultat
 
@@ -85,28 +117,3 @@ un score de confiance,
 un format JPG adapté au streaming.
 
 Les images peuvent ensuite être affichées, stockées ou consommées par d’autres microservices.
-
----
-
-## TODO – Développement du module d’affichage Web
-
-### 1. Écrire un script Python pour consommer Kafka
-- Se connecter au broker Kafka
-- Lire en continu le topic `processed/frames`
-- Récupérer la charge utile (Base64)
-
-### 2. Convertir le message Kafka en image
-- Décoder Base64 → bytes
-- Décompresser JPG → image
-- Préparer l’image pour diffusion Web (re-base64 si nécessaire)
-
-### 3. Mettre en place un backend Web pour envoyer les images
-Utilisation recommandée : **FastAPI + WebSocket**  
-Responsabilités :
-- Recevoir les images décodées
-- Les transmettre en temps réel aux navigateurs connectés
-
-### 4. Écrire une simple page HTML
-- Ouvrir une connexion WebSocket
-- Recevoir les images encodées
-- Mettre à jour continuellement `<img src=...>` pour afficher le flux
