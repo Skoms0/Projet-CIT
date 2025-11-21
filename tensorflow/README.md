@@ -1,6 +1,6 @@
-# 📘 Module TensorFlow Lite + Spark Streaming
+# Module TensorFlow Lite + Spark Streaming
 
-## 🧠 Rôle du module
+## Rôle du module
 Cette partie du projet réalise **l’analyse d’images en temps réel** grâce à un modèle **TensorFlow Lite**.  
 Elle reçoit des images encodées (bytes JPG), exécute la détection de personnes, annote l’image, puis renvoie le résultat dans un flux Kafka.
 
@@ -15,7 +15,7 @@ Le module permet :
 
 ---
 
-## ⚙️ Structure des fichiers
+## Structure des fichiers
 
 ### `traitement_image.py`
 - Chargement du modèle TFLite  
@@ -30,7 +30,7 @@ Le module permet :
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 Installer les dépendances :
 
@@ -40,7 +40,23 @@ pip install -r requirements.txt
 
 ---
 
-## ▶️ Exécution
+## Java Requirement
+Ce projet utilise Spark. Il nécessite obligatoirement :
+
+- Java 17 (OpenJDK / Temurin)
+- JAVA_HOME correctement configuré
+
+Vérification :
+
+```bash
+java -version
+```
+
+Doit afficher une version 17.x.
+
+---
+
+## Exécution
 
 Lancer le traitement Spark :
 
@@ -58,7 +74,7 @@ les images arrivent dans `input/images`.
 
 ---
 
-## 🧩 Résultat
+## Résultat
 
 Chaque image annotée contient :
 
@@ -72,7 +88,7 @@ Les images peuvent ensuite être affichées, stockées ou consommées par d’au
 
 ---
 
-## 📌 TODO – Développement du module d’affichage Web
+## TODO – Développement du module d’affichage Web
 
 ### 1. Écrire un script Python pour consommer Kafka
 - Se connecter au broker Kafka

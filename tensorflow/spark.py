@@ -3,7 +3,7 @@ from pyspark.sql.functions import udf, col
 from pyspark.sql.types import BinaryType
 
 from traitement_image import (
-    load_tflite_model,
+    build_interpreter,
     run_inference_bytes
 )
 
@@ -26,7 +26,7 @@ KAFKA_SERVERS = "kafka_server"             # TODO: use real server
 def create_udf():
 
     # Chargement du modèle TFLite
-    interpreter = load_tflite_model(MODEL_PATH, num_threads=4)
+    interpreter = build_interpreter(MODEL_PATH, num_threads=4)
 
     # Fonction interne exécutée pour chaque message Kafka
     def udf_fn(image_bytes):
