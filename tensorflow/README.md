@@ -54,7 +54,7 @@ Kafka est actif,
 
 les topics existent,
 
-les images arrivent dans camera/image.
+les images arrivent dans `input/images`.
 
 ---
 
@@ -69,3 +69,28 @@ un score de confiance,
 un format JPG adapté au streaming.
 
 Les images peuvent ensuite être affichées, stockées ou consommées par d’autres microservices.
+
+---
+
+## 📌 TODO – Développement du module d’affichage Web
+
+### 1. Écrire un script Python pour consommer Kafka
+- Se connecter au broker Kafka
+- Lire en continu le topic `processed/frames`
+- Récupérer la charge utile (Base64)
+
+### 2. Convertir le message Kafka en image
+- Décoder Base64 → bytes
+- Décompresser JPG → image
+- Préparer l’image pour diffusion Web (re-base64 si nécessaire)
+
+### 3. Mettre en place un backend Web pour envoyer les images
+Utilisation recommandée : **FastAPI + WebSocket**  
+Responsabilités :
+- Recevoir les images décodées
+- Les transmettre en temps réel aux navigateurs connectés
+
+### 4. Écrire une simple page HTML
+- Ouvrir une connexion WebSocket
+- Recevoir les images encodées
+- Mettre à jour continuellement `<img src=...>` pour afficher le flux
