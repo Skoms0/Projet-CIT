@@ -81,7 +81,7 @@ def main():
         .format("kafka") \
         .option("kafka.bootstrap.servers", KAFKA_SERVERS) \
         .option("topic", KAFKA_OUTPUT_TOPIC) \
-        .option("checkpointLocation", "/tmp/spark_checkpoint_tf") \
+        .option("checkpointLocation", "spark_checkpoint_tf") \
         .start()
 
     # Boucle d’attente : Spark reste actif et traite les images en continu.

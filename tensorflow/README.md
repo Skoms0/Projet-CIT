@@ -30,7 +30,7 @@ Le module permet :
 
 
 
-## Installation
+## Installation et Configuration
 
 Installer les dépendances :
 
@@ -85,6 +85,31 @@ Ouvrir ensuite :
 `pyspark\jars`
 
 C’est dans ce dossier que les JAR Kafka doivent être copiés.
+
+---
+
+Pour les utilisateurs de Windows, il faut installer Hadoop.
+
+Télécharger les fichiers `winutils.exe` et `hadoop.dll` depuis https://github.com/steveloughran/winutils/tree/master/hadoop-2.7.1/bin
+
+Pour créer le dossier Hadoop, choisissez un emplacement, par exemple :
+`C:\hadoop`
+
+Ensuite, créez un sous-dossier :
+`C:\hadoop\bin`
+
+Placez winutils.exe et hadoop.dll dans ce dossier.
+
+Ouvrez `Panneau de configuration → Système → Paramètres système avancés → Variables d’environnement`
+
+Ajoutez une nouvelle variable système :
+
+Nom : `HADOOP_HOME`
+Valeur : `C:\hadoop`
+
+Ensuite, modifiez Path et ajoutez :
+
+`%HADOOP_HOME%\bin`
 
 
 
