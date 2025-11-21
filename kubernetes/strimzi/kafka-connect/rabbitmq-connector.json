@@ -1,0 +1,12 @@
+{
+  "name": "rabbitmq-source",
+  "config": {
+    "connector.class": "com.github.jcustenborder.kafka.connect.rabbitmq.RabbitMQSourceConnector",
+    "kafka.topic": "input/images",
+    "rabbitmq.host": "rabbitmq.default.svc.cluster.local",
+    "rabbitmq.port": "5672",
+    "rabbitmq.username": "guest",
+    "rabbitmq.password": "guest",
+    "rabbitmq.queue": "iot_queue"
+  }
+}
