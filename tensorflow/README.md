@@ -24,7 +24,7 @@ Le module permet :
 - Module réutilisable, compatible Spark/Kafka
 
 ### `spark.py`
-- Lit les images depuis Kafka
+- Lit les images depuis Kafka `input/images`
 - Applique l’inférence via un UDF Spark
 - Renvoie les images annotées dans `processed/frames`
 
