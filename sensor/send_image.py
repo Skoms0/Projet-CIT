@@ -1,12 +1,27 @@
 #!/usr/bin/env python3
+
+# --------------------------------
+# Imports
+
 import paho.mqtt.client as mqtt
 import argparse
 import os
 
+# --------------------------------
+# Configuration MQTT
+
+# - BROKERS : adresses du serveur MQTT (ex : "localhost" si Mosquitto est sur ce Raspberry ou "10.0.1.XX" si le broker est distant)
+# - topic : nom du canal où seront envoyées les images
+# - USERNAME : nom d'utilisateur MQTT
+# - PASSWORD : mot de passe MQTT
+
 BROKERS = ["10.0.1.52", "10.0.1.53", "10.0.1.54"]
-TOPIC = "test/topic"
+TOPIC = "input/images"
 USERNAME = "davidra"
 PASSWORD = "davidra"
+
+# --------------------------------
+# Fonction pour publier l'image sur un broker MQTT
 
 def publish_image(image_path):
     if not os.path.isfile(image_path):
@@ -32,6 +47,10 @@ def publish_image(image_path):
             print(f"[ERROR] Failed to connect to {broker}: {e}")
 
     print("[FATAL] Could not publish to any broker.")
+
+
+# --------------------------------
+# MAIN : lecture du chemin image depuis les arguments
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Send one image via MQTT")
