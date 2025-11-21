@@ -100,3 +100,9 @@ python3 client_send.py
 ```
 
 Le flux s’affiche en direct et se met à jour toutes les 5 secondes.
+
+
+## utilisation de send_image.py
+```python
+python3 send.py --image image.jpg
+```
