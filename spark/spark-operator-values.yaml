@@ -1,0 +1,16 @@
+# spark-operator-values.yaml
+replicas: 2
+
+sparkJobNamespace: default
+
+webhook:
+  enable: true
+
+# ensure that no 2 spark operator run on the same pod for redundancy reasons
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: spark-operator
+        topologyKey: "kubernetes.io/hostname"

@@ -7,9 +7,9 @@ spec:
   type: Python
   mode: cluster
   pythonVersion: "3"
-  image: spark-master:latest
+  image: tensorflow-app:latest
   imagePullPolicy: IfNotPresent
-  mainApplicationFile: local:///opt/spark-apps/kafka_consumer.py
+  mainApplicationFile: local:///opt/spark-apps/spark.py
   sparkVersion: "3.5.0"
   restartPolicy:
     type: OnFailure
@@ -24,6 +24,6 @@ spec:
 
   executor:
     cores: 1
-    instances: 2
+    instances: 4
     memory: 1g
 
