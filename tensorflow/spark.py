@@ -10,7 +10,7 @@ from traitement_image import (
 
 
 # Configuration
-MODEL_PATH = "efficientdet_lite0.tflite"
+MODEL_PATH = "lite3x_detection_metadata.tflite"
 LABELS = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus",
     "train", "truck", "boat", "traffic light", "fire hydrant"
