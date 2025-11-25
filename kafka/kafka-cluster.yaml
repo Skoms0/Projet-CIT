@@ -50,18 +50,7 @@ spec:
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
-  name: input/images
-  namespace: default
-  labels:
-    strimzi.io/cluster: my-cluster
-spec:
-  partitions: 3
-  replicas: 3
----
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaTopic
-metadata:
-  name: processed/frames
+  name: processed.frames
   namespace: default
   labels:
     strimzi.io/cluster: my-cluster
@@ -79,3 +68,15 @@ metadata:
 spec:
   partitions: 3
   replicas: 3
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: input.images
+  namespace: default
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: 3
+  replicas: 3
+
