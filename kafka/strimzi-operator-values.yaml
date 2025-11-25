@@ -1,0 +1,30 @@
+# strimzi-operator-values.yaml
+replicas: 2
+
+
+# Activer le webhook d'admission pour Kafka custom resources
+webhook:
+  enabled: true
+
+# Anti-affinity : éviter que les pods de l'operator soient sur le même nœud
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: strimzi-cluster-operator
+        topologyKey: "kubernetes.io/hostname"
+
+# Ressources recommandées
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+
+# Tolérances pour permettre au pod de tourner sur certains nœuds (ex. master)
+tolerations:
+  - key: "node-role.kubernetes.io/master"
+    effect: "NoSchedule"
