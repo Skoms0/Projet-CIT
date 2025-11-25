@@ -1,0 +1,4 @@
+[
+  {"host": "10.0.1.25", "user": "tstephen", "password": "raspberry", "role": "Master"},
+  {"host": "10.0.1.65", "user": "tstephen", "password": "raspberry", "role": "Worker"}
+]
