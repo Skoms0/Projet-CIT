@@ -1,6 +1,7 @@
 # Module TensorFlow Lite + Spark Streaming
 
 ## Rôle du module
+
 Cette partie du projet réalise **l’analyse d’images en temps réel** grâce à un modèle **TensorFlow Lite**.  
 Elle reçoit des images encodées (bytes JPG), exécute la détection de personnes, annote l’image, puis renvoie le résultat dans un flux Kafka.
 
@@ -8,27 +9,26 @@ Pipeline cible :
 Capteurs → MQTT/RabbitMQ → Kafka → Spark Streaming → TensorFlow Lite → Kafka → Web/Stockage
 
 Le module permet :
-- le chargement du modèle TFLite (EfficientDet Lite0),
+
+- le chargement du modèle TFLite (lite3x-detection-metadata),
 - la détection d’objets image par image,
 - l’annotation (bounding boxes),
 - l’intégration dans Spark via un **UDF**.
 
-
-
 ## Structure des fichiers
 
 ### `traitement_image.py`
+
 - Chargement du modèle TFLite  
 - Fonction d’inférence  
 - Conversion `bytes ↔ image`  
 - Module réutilisable, compatible Spark/Kafka
 
 ### `spark.py`
+
 - Lit les images depuis Kafka `input/images`
 - Applique l’inférence via un UDF Spark
 - Renvoie les images annotées dans `processed/frames`
-
-
 
 ## Installation et Configuration
 
@@ -58,19 +58,20 @@ Doit afficher une version 17.x.
 Ce projet utilise aussi 3 fichiers .jar :
 
 1. spark-sql-kafka-0-10_2.13-3.5.0.jar
-https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.13/3.5.0/spark-sql-kafka-0-10_2.13-3.5.0.jar
+<https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.13/3.5.0/spark-sql-kafka-0-10_2.13-3.5.0.jar>
 
 2. spark-token-provider-kafka-0-10_2.13-3.5.0.jar
-https://repo1.maven.org/maven2/org/apache/spark/spark-token-provider-kafka-0-10_2.13/3.5.0/spark-token-provider-kafka-0-10_2.13-3.5.0.jar
+<https://repo1.maven.org/maven2/org/apache/spark/spark-token-provider-kafka-0-10_2.13/3.5.0/spark-token-provider-kafka-0-10_2.13-3.5.0.jar>
 
 3. kafka-clients-3.5.0.jar
-https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.5.0/kafka-clients-3.5.0.jar
+<https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.5.0/kafka-clients-3.5.0.jar>
 
 Dans PowerShell, exécuter :
 
 ```bash
 python
 ```
+
 ```bash
 import pyspark, os
 print(os.path.dirname(pyspark.__file__))
@@ -90,7 +91,7 @@ C’est dans ce dossier que les JAR Kafka doivent être copiés.
 
 Pour les utilisateurs de Windows, il faut installer Hadoop.
 
-Télécharger les fichiers `winutils.exe` et `hadoop.dll` depuis https://github.com/steveloughran/winutils/tree/master/hadoop-2.7.1/bin
+Télécharger les fichiers `winutils.exe` et `hadoop.dll` depuis <https://github.com/steveloughran/winutils/tree/master/hadoop-2.7.1/bin>
 
 Pour créer le dossier Hadoop, choisissez un emplacement, par exemple :
 `C:\hadoop`
@@ -111,8 +112,6 @@ Ensuite, modifiez Path et ajoutez :
 
 `%HADOOP_HOME%\bin`
 
-
-
 ## Exécution
 
 Lancer le traitement Spark :
@@ -128,8 +127,6 @@ Kafka est actif,
 les topics existent,
 
 les images arrivent dans `input/images`.
-
-
 
 ## Résultat
 
