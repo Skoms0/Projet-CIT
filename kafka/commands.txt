@@ -1,0 +1,26 @@
+
+
+
+helm repo add strimzi https://strimzi.io/charts/
+helm repo add spark-operator https://kubeflow.github.io/spark-operator
+helm repo update
+
+helm upgrade --install strimzi strimzi/strimzi-kafka-operator
+helm install spark-operator spark-operator/spark-operator  --set sparkJobNamespace=default   --set webhook.enable=true
+
+docker buildx build -t spark-master:latest -f ./Dockerfile_spark .
+k3d image import spark-master:latest -c test-cluster
+
+
+
+kubectl apply -f kafka-cluster.yaml
+
+
+kubectl create sa spark
+
+kubectl create clusterrolebinding spark-role \
+  --clusterrole=edit \
+  --serviceaccount=default:spark
+
+
+kubectl apply -f spark_application.yaml

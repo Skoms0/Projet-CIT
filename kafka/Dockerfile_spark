@@ -1,0 +1,16 @@
+FROM apache/spark:3.5.0
+
+# Installer kafka-python si nécessaire
+USER root
+RUN pip install --no-cache-dir kafka-python
+USER spark
+
+# Copier le script Python
+WORKDIR /opt/spark-apps
+COPY kafka_consumer.py .
+
+# Copier les jars Kafka
+#COPY jars/spark-sql-kafka-0-10_2.12-3.5.0.jar /opt/spark/jars/
+#COPY jars/kafka-clients-3.5.1.jar /opt/spark/jars/
+
+COPY jars/ /opt/spark/jars/
