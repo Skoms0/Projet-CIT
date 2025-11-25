@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-publisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-image-producer
+  template:
+    metadata:
+      labels:
+        app: kafka-image-producer
+    spec:
+      containers:
+        - name: publisher
+          image: publisher:1.0.1
+          imagePullPolicy: IfNotPresent
