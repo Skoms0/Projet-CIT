@@ -1,8 +1,8 @@
 {
-  "name": "rabbitmq-source",
+  "name": "rabbitmq-source-connector",
   "config": {
-    "connector.class": "com.github.jcustenborder.kafka.connect.rabbitmq.RabbitMQSourceConnector",
-    "kafka.topic": "input/images",
+    "connector.class": "io.confluent.connect.rabbitmq.RabbitMQSourceConnector",
+    "kafka.topic": "input.images",
     "rabbitmq.host": "rabbitmq.default.svc.cluster.local",
     "rabbitmq.port": "5672",
     "rabbitmq.username": "guest",
