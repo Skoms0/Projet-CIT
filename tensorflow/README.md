@@ -26,9 +26,9 @@ Le module permet :
 
 ### `spark.py`
 
-- Lit les images depuis Kafka `input/images`
+- Lit les images depuis Kafka `input.images`
 - Applique l’inférence via un UDF Spark
-- Renvoie les images annotées dans `processed/frames`
+- Renvoie les images annotées dans `processed.frames`
 
 ## Installation et Configuration
 
@@ -126,7 +126,7 @@ Kafka est actif,
 
 les topics existent,
 
-les images arrivent dans `input/images`.
+les images arrivent dans `input.images`.
 
 ## Résultat
 
