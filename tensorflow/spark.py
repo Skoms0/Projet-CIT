@@ -16,8 +16,8 @@ LABELS = [
     "train", "truck", "boat", "traffic light", "fire hydrant"
 ]
 
-KAFKA_INPUT_TOPIC = "input/images"
-KAFKA_OUTPUT_TOPIC = "processed/frames"
+KAFKA_INPUT_TOPIC = "input.images"
+KAFKA_OUTPUT_TOPIC = "processed.frames"
 KAFKA_SERVERS = "kafka_server"             # TODO: use real server
 
 
