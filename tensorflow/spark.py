@@ -18,7 +18,7 @@ LABELS = [
 
 KAFKA_INPUT_TOPIC = "input.images"
 KAFKA_OUTPUT_TOPIC = "processed.frames"
-KAFKA_SERVERS = "kafka_server"             # TODO: use real server
+KAFKA_SERVERS = "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092"
 
 
  
