@@ -17,3 +17,11 @@ spec:
     value.converter: org.apache.kafka.connect.json.JsonConverter
     key.converter.schemas.enable: false
     value.converter.schemas.enable: false
+  build:
+    output:
+      type: docker
+    plugins:
+      - name: rabbitmq-connector
+        artifacts:
+          - type: zip
+            url: ../confluentinc-kafka-connect-rabbitmq-1.8.1.zip
