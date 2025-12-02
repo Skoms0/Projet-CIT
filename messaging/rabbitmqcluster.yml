@@ -146,3 +146,17 @@ spec:
           hostPath:
             path: /var/lib/rabbitmq-k3s-data
             type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-mqtt  # <--- This becomes your Hostname!
+  namespace: default   # Assuming you are in the default namespace
+spec:
+  type: ClusterIP      # Internal only (Default)
+  selector:
+    app: rabbitmq
+  ports:
+    - name: mqtt
+      port: 1883       # The internal port
+      protocol: TCP
