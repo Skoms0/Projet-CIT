@@ -150,13 +150,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbitmq-mqtt  # <--- This becomes your Hostname!
-  namespace: default   # Assuming you are in the default namespace
+  name: rabbitmq-mqtt
+  namespace: default
 spec:
-  type: ClusterIP      # Internal only (Default)
+  type: ClusterIP
   selector:
     app: rabbitmq
   ports:
     - name: mqtt
-      port: 1883       # The internal port
+      port: 1883       # For the Camera/Publisher
+      protocol: TCP
+    - name: amqp
+      port: 5672       # <--- OPENED FOR THE WORKER (AMQP)
       protocol: TCP
