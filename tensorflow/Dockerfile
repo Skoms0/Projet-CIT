@@ -19,5 +19,6 @@ USER spark
 WORKDIR /opt/spark-apps
 COPY ./spark.py .
 COPY ./traitement_image.py .
+COPY ./lite3x_detection_metadata.tflite .
 # Copier les jars Kafka
 COPY jars/ /opt/spark/jars/

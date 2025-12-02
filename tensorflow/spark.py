@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, col
+from pyspark.sql.functions import udf, col, lit
 from pyspark.sql.types import BinaryType
 
 from traitement_image import (
@@ -43,6 +43,11 @@ def create_udf():
             threshold=0.3,
             person_only=True
         )
+        print("type of processed bytes : ", type(processed_bytes))
+        print("Processed bytes : ", processed_bytes)
+
+        
+
 
         return processed_bytes
 
@@ -74,7 +79,10 @@ def main():
     processed = raw.withColumn(
         "value",                     # colonne modifiée
         udf_inference(col("value"))  # UDF exécuté image par image
-    ).select("value")                # Kafka n'a besoin que du champ "value"
+    ).select(
+            lit("latest").cast(BinaryType()).alias("key"),  # clé fixe pour compaction (=garder uniquement un seul message dans a queue kafka)
+            col("value") # Kafka n'a besoin que du champ "value"
+    )                
 
     # Écriture du flux traité vers Kafka
     query = processed.writeStream \
