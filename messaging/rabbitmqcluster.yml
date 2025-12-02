@@ -1,0 +1,148 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rabbitmq
+  namespace: default
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rabbitmq
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rabbitmq
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: rabbitmq
+    namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rabbitmq
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+  namespace: default
+data:
+  rabbitmq.conf: |
+    listeners.tcp.default = 5672
+    loopback_users.guest = false
+    
+    # Discovery
+    cluster_formation.peer_discovery_backend = rabbitmq_peer_discovery_k8s
+    cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+    cluster_formation.k8s.address_type = ip
+    cluster_formation.k8s.service_name = rabbitmq-headless
+    
+    # Auto-Heal / Cleanup
+    # These settings are critical for "Leaving Dynamically"
+    cluster_partition_handling = autoheal
+    cluster_formation.node_cleanup.interval = 10
+    cluster_formation.node_cleanup.only_log_warning = false
+    queue_master_locator = min-masters
+  enabled_plugins: |
+    [rabbitmq_management, rabbitmq_peer_discovery_k8s, rabbitmq_mqtt].
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-headless
+  namespace: default
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+    - name: epmd
+      port: 4369
+---
+# -------------------------------------------------------------
+# CHANGED TO DAEMONSET FOR DYNAMIC SCALING
+# -------------------------------------------------------------
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rabbitmq
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      serviceAccountName: rabbitmq
+      
+      # Use Host Network (One per node)
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      
+      # We don't need Anti-Affinity anymore because DaemonSets
+      # inherently enforce "One Pod Per Node"
+      
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: RABBITMQ_NODENAME
+              value: "rabbit@$(MY_POD_IP)"
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+            - name: RABBITMQ_CLUSTER_DISCOVERY_K8S
+              value: "rabbitmq_peer_discovery_k8s"
+            - name: RABBITMQ_CLUSTER_DISCOVERY_K8S_SERVICE
+              value: "rabbitmq-headless"
+            - name: RABBITMQ_CLUSTER_DISCOVERY_K8S_ADDRESS_TYPE
+              value: "ip"
+            - name: RABBITMQ_DEFAULT_USER
+              value: "davidra"
+            - name: RABBITMQ_DEFAULT_PASS
+              value: "davidra"
+            - name: RABBITMQ_ERLANG_COOKIE
+              value: "SECRET_COOKIE_123"
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+            - containerPort: 4369
+            - containerPort: 25672
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/rabbitmq/rabbitmq.conf
+              subPath: rabbitmq.conf
+            - name: config-volume
+              mountPath: /etc/rabbitmq/enabled_plugins
+              subPath: enabled_plugins
+            - name: rabbitmq-data-host
+              mountPath: /var/lib/rabbitmq
+      volumes:
+        - name: config-volume
+          configMap:
+            name: rabbitmq-config
+        # ---------------------------------------------------------
+        # BARE METAL STORAGE
+        # We map a folder on the Pi directly to the container.
+        # This ensures data persists on this specific Pi.
+        # ---------------------------------------------------------
+        - name: rabbitmq-data-host
+          hostPath:
+            path: /var/lib/rabbitmq-k3s-data
+            type: DirectoryOrCreate
