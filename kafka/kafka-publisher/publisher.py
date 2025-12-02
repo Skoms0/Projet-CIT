@@ -1,30 +1,28 @@
-import base64
 import time
 from kafka import KafkaProducer
 
-print("héhé")
-
+# Configuration
 KAFKA_BOOTSTRAP = "my-cluster-kafka-bootstrap:9092"
 TOPIC = "input.images"
 FILE_PATH = "example-image.jpeg"
 INTERVAL = 5  # secondes
 
-def load_image_base64(path):
+# Lecture du fichier en bytes
+def load_image_bytes(path):
     with open(path, "rb") as f:
-        return base64.b64encode(f.read())
-
-
+        return f.read()
 
 def main():
-    print("start main")
+    print("Démarrage du producteur Kafka...")
     producer = KafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
-    img_data = load_image_base64(FILE_PATH)
-    
+    img_data = load_image_bytes(FILE_PATH)
+
     while True:
-        print("Envoi d'une image dans Kafka...")
+        print(f"Envoi d'une image de {len(img_data)} bytes dans Kafka...")
         producer.send(TOPIC, img_data)
         producer.flush()
         time.sleep(INTERVAL)
 
 if __name__ == "__main__":
     main()
+
