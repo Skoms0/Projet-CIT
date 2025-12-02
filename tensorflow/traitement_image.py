@@ -92,7 +92,8 @@ def run_inference_bytes(interpreter, image_bytes, labels, threshold=0.3, person_
     frame = visualize(frame, boxes, classes, scores, labels, threshold=threshold, person_only=person_only)
 
     # Encodage en JPG
-    ok, jpeg = cv2.imencode(".jpg", frame)
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]   # <--- compression ici
+    ok, jpeg = cv2.imencode(".jpg", frame, encode_param)
     if not ok:
         return None
 
