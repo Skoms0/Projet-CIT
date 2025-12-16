@@ -146,3 +146,20 @@ spec:
           hostPath:
             path: /var/lib/rabbitmq-k3s-data
             type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-mqtt
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: rabbitmq
+  ports:
+    - name: mqtt
+      port: 1883       # For the Camera/Publisher
+      protocol: TCP
+    - name: amqp
+      port: 5672       # <--- OPENED FOR THE WORKER (AMQP)
+      protocol: TCP

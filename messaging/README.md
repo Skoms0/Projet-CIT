@@ -39,3 +39,11 @@ Côté publisher et subscriber, si la connexion se passe normalement mais qu'auc
 - utiliser clean session = False
 
 - utiliser qos =1 si on veut que s'assurer que le message soit consommé au moins une fois
+
+## Sur l'unicité des messages
+
+Les queues subscriber sont automatiquement dupliquées c'est à dire que chaque subscriber obtient une copie du message. Il y a donc possibilité de traiter le message deux fois par la suite coté reactive streaming et app si on ne fait pas attention ou si ce n'est pas le but.
+
+La solution serait d'utiliser les shared sub MQTTv5 mais [RabbitMQ ne prend pas en charge](https://www.rabbitmq.com/docs/mqtt#shared-subscriptions)
+
+Nous avons de la chance que internalement Rabbitmq convertit le tout en une file amqp que l'on peut consommer avec ce protocole, il y a aussi possibilité de faire un bridge kafka mais nous sommes encore en investigation

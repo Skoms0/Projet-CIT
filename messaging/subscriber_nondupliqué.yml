@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: amqp-worker
+  namespace: default
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: amqp-worker
+    image: python:3.9-slim
+    env:
+      - name: PYTHONUNBUFFERED
+        value: "1"  # Ensures logs print immediately
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        pip install pika && \
+        python3 -c "
+        import pika
+        import sys
+        import time
+
+        # --- CONFIGURATION ---
+        # Updated to use Internal DNS
+        BROKER = 'rabbitmq-mqtt'
+        USERNAME = 'davidra'
+        PASSWORD = 'davidra'
+
+        # The Shared Queue Name
+        QUEUE_NAME = 'video_processing_queue'
+
+        # The Binding Key (AMQP format uses DOTS, not slashes)
+        BINDING_KEY = 'cam.h264.#'
+
+        worker_name = 'Worker-Pod'
+
+        def main():
+            print(f'[{worker_name}] Connecting to {BROKER}:5672...')
+            
+            try:
+                # 1. Connect to RabbitMQ via AMQP (Port 5672)
+                credentials = pika.PlainCredentials(USERNAME, PASSWORD)
+                parameters = pika.ConnectionParameters(host=BROKER, port=5672, credentials=credentials)
+                connection = pika.BlockingConnection(parameters)
+                channel = connection.channel()
+
+                # 2. Declare the Queue (The shared bucket)
+                channel.queue_declare(queue=QUEUE_NAME, durable=True)
+
+                # 3. Bind the Queue to the MQTT Exchange ('amq.topic')
+                channel.queue_bind(exchange='amq.topic', 
+                                   queue=QUEUE_NAME, 
+                                   routing_key=BINDING_KEY)
+
+                # 4. Enable Fair Dispatch (Load Balancing)
+                channel.basic_qos(prefetch_count=1)
+
+                print(f'[{worker_name}] Connected. Waiting for messages...')
+
+                def callback(ch, method, properties, body):
+                    message_text = body.decode()
+                    print(f'[{worker_name}] ➤ Received: {message_text}')
+                    
+                    # Simulate processing time (e.g., saving video)
+                    time.sleep(1) 
+                    
+                    print(f'[{worker_name}]    Finished {message_text}')
+                    
+                    # Acknowledge the message so RabbitMQ deletes it
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+                channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback)
+                channel.start_consuming()
+
+            except Exception as e:
+                print(f'[Error] {e}')
+                sys.exit(1)
+
+        if __name__ == '__main__':
+            main()
+        "
