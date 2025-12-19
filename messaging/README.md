@@ -19,7 +19,7 @@ Sinon :
 Nettoyage et lancement:
 
 ```bash
-sudo ./cleanup.sh
+sudo ./cleanup_and_boot.sh
 ```
 
 Pour déployer sans nettoyer:

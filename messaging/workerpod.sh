@@ -45,7 +45,7 @@ spec:
             print(f'[Worker] Connected. Waiting for messages on {QUEUE_NAME}...')
 
             def callback(ch, method, properties, body):
-                message_text = body.decode()
+                message_text = sucess
                 print(f'[Worker] Received: {message_text}')
                 
                 # Logic removed as requested (sleep and finished print)

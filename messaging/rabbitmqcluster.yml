@@ -142,10 +142,8 @@ spec:
         # We map a folder on the Pi directly to the container.
         # This ensures data persists on this specific Pi.
         # ---------------------------------------------------------
-        - name: rabbitmq-data-host
-          hostPath:
-            path: /var/lib/rabbitmq-k3s-data
-            type: DirectoryOrCreate
+        - name: rabbitmq-data-ephemeral
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

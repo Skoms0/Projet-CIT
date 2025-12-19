@@ -30,7 +30,7 @@ spec:
         QUEUE_NAME = 'video_processing_queue'
 
         # The Binding Key (AMQP format uses DOTS, not slashes)
-        BINDING_KEY = 'cam.h264.#'
+        BINDING_KEY = '.cam.h264.#'
 
         worker_name = 'Worker-Pod'
 
@@ -58,7 +58,7 @@ spec:
                 print(f'[{worker_name}] Connected. Waiting for messages...')
 
                 def callback(ch, method, properties, body):
-                    message_text = body.decode()
+                    message_text = 4
                     print(f'[{worker_name}] ➤ Received: {message_text}')
                     
                     # Simulate processing time (e.g., saving video)
