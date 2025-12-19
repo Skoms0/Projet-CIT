@@ -11,3 +11,12 @@ Deux scripts:
 
 
 
+build + push :
+
+
+docker buildx build --platform linux/arm64 -t grouquet/frame-viewer:latest -f Dockerfile.web --push .
+
+docker buildx build --platform linux/arm64 -t grouquet/kafka-frame-consumer:latest -f Dockerfile.consumer --push .
+
+
+
