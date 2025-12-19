@@ -1,0 +1,1 @@
+curl -sfL https://get.k3s.io | K3S_TOKEN="K102934f8d6d2ab982cd7f0fdc480c04e9eec7214dc191ededb344a80fbfb1f4a82" sh -s - server
