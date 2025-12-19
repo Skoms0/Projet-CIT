@@ -8,13 +8,21 @@ Le master K3S est sur 10.0.1.52
 
 ## Déploiement
 
-Nettoyage:
+Si **rien est encore déployé**:
+
+```bash
+sudo ./first_boot
+```
+
+Sinon :
+
+Nettoyage et lancement:
 
 ```bash
 sudo ./cleanup.sh
 ```
 
-Pour déployer:
+Pour déployer sans nettoyer:
 
 ```bash
 sudo kubectl apply -f rabbitmqcluster.yml
@@ -22,10 +30,17 @@ sudo kubectl apply -f rabbitmqcluster.yml
 
 ## Côté esclave
 
-Pour déployer côte esclaves:
+Pour déployer côte esclaves (cas d'un nouveau déploiement):
+**changer K3S_URL si nous utilisons un autre serveur**
 
 ```bash
 ./client_k3s.sh
+```
+
+Token actuel si on utilise le même cluster:
+
+```bash
+K3S_TOKEN="K102934f8d6d2ab982cd7f0fdc480c04e9eec7214dc191ededb344a80fbfb1f4a82::server:05ae5f72b069f931cb43ce7ab0540ef6"
 ```
 
 ## Conseil
