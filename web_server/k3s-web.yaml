@@ -1,53 +1,41 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frame-viewer
+  name: kafka-web-combo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: frame-viewer
+      app: kafka-web-combo
   template:
     metadata:
       labels:
-        app: frame-viewer
+        app: kafka-web-combo
     spec:
       containers:
-        - name: frame-viewer
-          image: grouquet/frame-viewer:latest
+        - name: kafka-web-combo
+          image: grouquet/kafka-web-combo:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
-          # (Optionnel) petites limites pour Raspberry
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "256Mi"
-          # (Optionnel) readiness/liveness simples
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 5000
-            initialDelaySeconds: 3
-            periodSeconds: 5
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 5000
-            initialDelaySeconds: 10
-            periodSeconds: 10
-
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: KAFKA_TOPIC
+              value: "test2"
+            - name: GROUP_ID
+              value: "consumer-images-only"
+            # Dans le même conteneur, localhost pointe vers Flask
+            - name: WEB_SERVER_URL
+              value: "http://localhost:5000/api/data"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: frame-viewer-service
+  name: kafka-web-combo-svc
 spec:
   selector:
-    app: frame-viewer
+    app: kafka-web-combo
   type: NodePort
   ports:
     - name: http
