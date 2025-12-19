@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-frame-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-frame-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-frame-consumer
+    spec:
+      containers:
+        - name: kafka-frame-consumer
+          image: grouquet/kafka-frame-consumer:latest
+          imagePullPolicy: Always
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"   # si Kafka est dans le cluster avec service "kafka"
+            - name: KAFKA_TOPIC
+              value: "test2"
+            - name: GROUP_ID
+              value: "consumer-images-only"
+            - name: WEB_SERVER_URL
+              value: "http://frame-viewer-service:5000/api/data"  # service web dans le cluster
+          # Optionnel: limites adaptées Raspberry
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"

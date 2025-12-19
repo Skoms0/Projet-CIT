@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frame-viewer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frame-viewer
+  template:
+    metadata:
+      labels:
+        app: frame-viewer
+    spec:
+      containers:
+        - name: frame-viewer
+          image: grouquet/frame-viewer:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          # (Optionnel) petites limites pour Raspberry
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          # (Optionnel) readiness/liveness simples
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frame-viewer-service
+spec:
+  selector:
+    app: frame-viewer
+  type: NodePort
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+      nodePort: 30080

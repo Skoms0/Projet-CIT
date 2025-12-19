@@ -1,6 +1,8 @@
 from confluent_kafka import Consumer, KafkaException
 import requests
 import threading
+import os
+
 
 """
 kafka_frame_consumer.py
@@ -21,11 +23,11 @@ Dépendances :
 # CONFIGURATION
 # --------------------------
 
-KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
-KAFKA_TOPIC = "test2"
-GROUP_ID = "consumer-images-only"
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "test2")
+GROUP_ID = os.getenv("GROUP_ID", "consumer-images-only")
 
-WEB_SERVER_URL = "http://localhost:5000/api/data"   # Serveur web Flask
+WEB_SERVER_URL = os.getenv("WEB_SERVER_URL", "http://localhost:5000/api/data")
 
 # --------------------------
 # CONSUMER KAFKA
