@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-kafka-connector
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rabbitmq-kafka-connector
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-kafka-connector
+    spec:
+      containers:
+        - name: connector
+          image: rabbitmq-kafka-connector:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: RABBITMQ_HOST
+              value: "rabbitmq.default.svc.cluster.local"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: "guest"
+            - name: RABBITMQ_PASSWORD
+              value: "guest"
+            - name: RABBITMQ_QUEUE
+              value: "input_queue"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092"
+            - name: KAFKA_TOPIC
+              value: "input.images"
+            - name: PREFETCH_COUNT
+              value: "10"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

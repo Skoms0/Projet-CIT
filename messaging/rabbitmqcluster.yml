@@ -37,13 +37,13 @@ data:
   rabbitmq.conf: |
     listeners.tcp.default = 5672
     loopback_users.guest = false
-    
+
     # Discovery
     cluster_formation.peer_discovery_backend = rabbitmq_peer_discovery_k8s
     cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
     cluster_formation.k8s.address_type = ip
     cluster_formation.k8s.service_name = rabbitmq-headless
-    
+
     # Auto-Heal / Cleanup
     # These settings are critical for "Leaving Dynamically"
     cluster_partition_handling = autoheal
@@ -87,14 +87,14 @@ spec:
         app: rabbitmq
     spec:
       serviceAccountName: rabbitmq
-      
+
       # Use Host Network (One per node)
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      
+
       # We don't need Anti-Affinity anymore because DaemonSets
       # inherently enforce "One Pod Per Node"
-      
+
       containers:
         - name: rabbitmq
           image: rabbitmq:3-management
@@ -158,8 +158,8 @@ spec:
     app: rabbitmq
   ports:
     - name: mqtt
-      port: 1883       # For the Camera/Publisher
+      port: 1883 # For the Camera/Publisher
       protocol: TCP
     - name: amqp
-      port: 5672       # <--- OPENED FOR THE WORKER (AMQP)
+      port: 5672 # <--- OPENED FOR THE WORKER (AMQP)
       protocol: TCP
