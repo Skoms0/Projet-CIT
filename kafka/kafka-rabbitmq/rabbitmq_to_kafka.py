@@ -1,42 +1,32 @@
-import json
 import os
 import signal
 import sys
 import time
-
-import pika
-import pika.exceptions
 from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable
+import paho.mqtt.client as mqtt
 
 # -------------------------
 # Configuration (ENV VARS)
 # -------------------------
-
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
-RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
-RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
-RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
-RABBITMQ_QUEUE = os.getenv("RABBITMQ_QUEUE", "input_queue")
+MQTT_BROKERS = os.getenv("MQTT_BROKERS", "10.0.1.13").split(",")
+MQTT_TOPIC = os.getenv("MQTT_TOPIC", "/cam/h264/cam13")
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", "davidra")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "davidra")
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "input.images")
 
-PREFETCH_COUNT = int(os.getenv("PREFETCH_COUNT", "10"))
+RUNNING = True
+PRODUCER = None
 
 # -------------------------
 # Graceful Shutdown
 # -------------------------
-
-RUNNING = True
-PRODUCER = None
-
-
 def shutdown_handler(signum, frame):
     global RUNNING
     print("Shutdown signal received...")
     RUNNING = False
-
 
 signal.signal(signal.SIGTERM, shutdown_handler)
 signal.signal(signal.SIGINT, shutdown_handler)
@@ -44,113 +34,94 @@ signal.signal(signal.SIGINT, shutdown_handler)
 # -------------------------
 # Kafka Producer Initialization
 # -------------------------
-
-
 def init_kafka_producer():
-    """Initialise le producteur Kafka avec retry"""
     global PRODUCER
     retry_count = 0
     max_retries = 10
 
     while retry_count < max_retries and RUNNING:
         try:
-            print(f"Attempting to connect to Kafka at {KAFKA_BOOTSTRAP_SERVERS}...")
+            print(f"Connecting to Kafka at {KAFKA_BOOTSTRAP_SERVERS}...")
             PRODUCER = KafkaProducer(
-                bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS.split(","),
-                # Pas de serializer pour envoyer des données binaires brutes (images)
+                bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
                 value_serializer=None,
                 retries=5,
                 linger_ms=10,
-                max_request_size=10485760,  # 10 MB pour supporter les grandes images
+                max_request_size=10485760,  # 10 MB
             )
-            print("Successfully connected to Kafka!")
+            print("Kafka connection established!")
             return True
         except NoBrokersAvailable as e:
             retry_count += 1
             print(f"Kafka not available (attempt {retry_count}/{max_retries}): {e}")
-            if retry_count < max_retries:
-                time.sleep(5)
+            time.sleep(5)
         except Exception as e:
             retry_count += 1
-            print(
-                f"Error connecting to Kafka (attempt {retry_count}/{max_retries}): {e}"
-            )
-            if retry_count < max_retries:
-                time.sleep(5)
+            print(f"Error connecting to Kafka (attempt {retry_count}/{max_retries}): {e}")
+            time.sleep(5)
 
-    print("Failed to connect to Kafka after maximum retries")
+    print("Failed to connect to Kafka after max retries")
     return False
 
-
 # -------------------------
-# RabbitMQ Callback
+# MQTT Callbacks
 # -------------------------
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print(f"[MQTT] Connected successfully to {userdata['broker']}")
+        client.subscribe(MQTT_TOPIC, qos=1)
+    else:
+        print(f"[MQTT] Connection failed with code {rc}")
 
-
-def on_message(channel, method_frame, header_frame, body):
+def on_message(client, userdata, msg):
     try:
-        # body contient directement les données binaires de l'image
-        # On les envoie telles quelles à Kafka
         if PRODUCER is None:
-            raise RuntimeError("Kafka producer is not initialized")
+            raise RuntimeError("Kafka producer not initialized")
 
-        PRODUCER.send(KAFKA_TOPIC, value=body)
+        # Envoi direct à Kafka
+        PRODUCER.send(KAFKA_TOPIC, value=msg.payload)
         PRODUCER.flush()
-
-        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-        print(f"Image forwarded to Kafka (size: {len(body)} bytes)")
+        print(f"[MQTT -> Kafka] Forwarded message from topic {msg.topic} ({len(msg.payload)} bytes)")
 
     except Exception as e:
-        print(f"Error processing message: {e}")
-        channel.basic_nack(delivery_tag=method_frame.delivery_tag, requeue=True)
-
+        print(f"[ERROR] Failed to forward message: {e}")
 
 # -------------------------
-# RabbitMQ Connection Loop
+# MQTT Consumer Loop
 # -------------------------
-
-
-def consume():
-    credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASSWORD)
-    parameters = pika.ConnectionParameters(
-        host=RABBITMQ_HOST,
-        port=RABBITMQ_PORT,
-        credentials=credentials,
-        heartbeat=30,
-    )
-
-    while RUNNING:
+def consume_mqtt():
+    clients = []
+    for broker in MQTT_BROKERS:
+        client = mqtt.Client(client_id=f"mqtt2kafka-{broker}", clean_session=False, userdata={"broker": broker})
+        client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+        client.on_connect = on_connect
+        client.on_message = on_message
         try:
-            connection = pika.BlockingConnection(parameters)
-            channel = connection.channel()
-            channel.queue_declare(queue=RABBITMQ_QUEUE, durable=True)
-            channel.basic_qos(prefetch_count=PREFETCH_COUNT)
-            channel.basic_consume(
-                queue=RABBITMQ_QUEUE,
-                on_message_callback=on_message,
-            )
-
-            print("Connected to RabbitMQ. Waiting for messages...")
-            channel.start_consuming()
-
-        except pika.exceptions.AMQPConnectionError as e:
-            print(f"RabbitMQ connection failed: {e}")
-            time.sleep(5)
-
+            client.connect(broker, 1883, 60)
+            client.loop_start()
+            clients.append(client)
         except Exception as e:
-            print(f"Unexpected error: {e}")
-            time.sleep(5)
+            print(f"[ERROR] Could not connect to MQTT broker {broker}: {e}")
 
-    print("Shutting down connector...")
-    if PRODUCER:
-        PRODUCER.close()
-    sys.exit(0)
+    # Boucle principale de maintien
+    try:
+        while RUNNING:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        for client in clients:
+            client.loop_stop()
+            client.disconnect()
+        if PRODUCER:
+            PRODUCER.close()
+        print("Shutdown complete")
+        sys.exit(0)
 
-
+# -------------------------
+# Main
+# -------------------------
 if __name__ == "__main__":
-    # Initialiser le producteur Kafka au démarrage
     if not init_kafka_producer():
         sys.exit(1)
-
-    # Démarrer la consommation RabbitMQ
-    consume()
+    consume_mqtt()
