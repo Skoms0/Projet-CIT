@@ -13,3 +13,5 @@ kubectl delete rolebinding rabbitmq
 # 3. CRITICAL: Delete the storage volumes (PVCs)
 # If you don't do this, the new pods will try to attach to old, corrupted data.
 kubectl delete pvc -l app=rabbitmq
+
+sudo kubectl apply -f rabbitmqcluster.yml
