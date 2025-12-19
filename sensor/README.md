@@ -7,6 +7,24 @@ Le PC s’abonne à ce topic et affiche le flux d’images en direct.
 
 ---
 
+## utilisation
+```
+ssh 10.0.1.13
+```
+lancer le script sendloopVersion1.sh, ça va exécuter le script /home/zhao/sendVersion1.py tous les 5 secondes  
+```
+./sendloopVersion1.sh  
+```
+Pour recevoir les images capturé, il faut lancer receiveVersion1.py  
+```
+python3 receiveVersion1.py
+```
+
+
+
+
+
+
 ## 🧠 Théorie – Rappels MQTT
 MQTT (*Message Queuing Telemetry Transport*) est un protocole léger basé sur le modèle **publish/subscribe** :
 
