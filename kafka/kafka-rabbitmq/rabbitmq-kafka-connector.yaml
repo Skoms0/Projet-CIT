@@ -23,9 +23,9 @@ spec:
             - name: RABBITMQ_PORT
               value: "5672"
             - name: RABBITMQ_USER
-              value: "guest"
+              value: "davidra"
             - name: RABBITMQ_PASSWORD
-              value: "guest"
+              value: "davidra"
             - name: RABBITMQ_QUEUE
               value: "input_queue"
             - name: KAFKA_BOOTSTRAP_SERVERS
