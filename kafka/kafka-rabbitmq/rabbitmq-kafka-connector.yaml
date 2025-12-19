@@ -27,7 +27,7 @@ spec:
             - name: RABBITMQ_PASSWORD
               value: "davidra"
             - name: RABBITMQ_QUEUE
-              value: "input_queue"
+              value: "cam/h264/#"
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092"
             - name: KAFKA_TOPIC

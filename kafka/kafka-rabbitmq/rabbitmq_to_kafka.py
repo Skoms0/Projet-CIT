@@ -28,14 +28,14 @@ PREFETCH_COUNT = int(os.getenv("PREFETCH_COUNT", "10"))
 # Graceful Shutdown
 # -------------------------
 
-running = True
-producer = None
+RUNNING = True
+PRODUCER = None
 
 
 def shutdown_handler(signum, frame):
-    global running
+    global RUNNING
     print("Shutdown signal received...")
-    running = False
+    RUNNING = False
 
 
 signal.signal(signal.SIGTERM, shutdown_handler)
@@ -48,14 +48,14 @@ signal.signal(signal.SIGINT, shutdown_handler)
 
 def init_kafka_producer():
     """Initialise le producteur Kafka avec retry"""
-    global producer
+    global PRODUCER
     retry_count = 0
     max_retries = 10
 
-    while retry_count < max_retries and running:
+    while retry_count < max_retries and RUNNING:
         try:
             print(f"Attempting to connect to Kafka at {KAFKA_BOOTSTRAP_SERVERS}...")
-            producer = KafkaProducer(
+            PRODUCER = KafkaProducer(
                 bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS.split(","),
                 # Pas de serializer pour envoyer des données binaires brutes (images)
                 value_serializer=None,
@@ -91,11 +91,11 @@ def on_message(channel, method_frame, header_frame, body):
     try:
         # body contient directement les données binaires de l'image
         # On les envoie telles quelles à Kafka
-        if producer is None:
+        if PRODUCER is None:
             raise RuntimeError("Kafka producer is not initialized")
 
-        producer.send(KAFKA_TOPIC, value=body)
-        producer.flush()
+        PRODUCER.send(KAFKA_TOPIC, value=body)
+        PRODUCER.flush()
 
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         print(f"Image forwarded to Kafka (size: {len(body)} bytes)")
@@ -119,7 +119,7 @@ def consume():
         heartbeat=30,
     )
 
-    while running:
+    while RUNNING:
         try:
             connection = pika.BlockingConnection(parameters)
             channel = connection.channel()
@@ -142,8 +142,8 @@ def consume():
             time.sleep(5)
 
     print("Shutting down connector...")
-    if producer:
-        producer.close()
+    if PRODUCER:
+        PRODUCER.close()
     sys.exit(0)
 
 
