@@ -87,7 +87,17 @@ spec:
         app: rabbitmq
     spec:
       serviceAccountName: rabbitmq
-
+      
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - captor
+                - rabbitqueue
       # Use Host Network (One per node)
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
