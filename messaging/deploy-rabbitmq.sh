@@ -1,5 +1,6 @@
 ## We suppose $CAPTORS and $RABBITMQUEUE contains list pf IPs like CAPTORS="10.0.1.12 10.0.1.13"
-
+CAPTORS="10.0.1.2"
+RABBITMQUEUE="10.0.1.52 10.0.1.53 10.0.1.54 10.0.1.55"
 # Label Captors
 for IP in $CAPTORS; do
   NODE=$(kubectl get nodes -o wide | grep -w "$IP" | awk '{print $1}')
