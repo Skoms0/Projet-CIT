@@ -9,16 +9,20 @@ import paho.mqtt.client as mqtt
 # -------------------------
 # Configuration (ENV VARS)
 # -------------------------
-MQTT_BROKERS = os.getenv("MQTT_BROKERS", "10.0.1.13").split(",")
-MQTT_TOPIC = os.getenv("MQTT_TOPIC", "/cam/h264/cam13")
-MQTT_USERNAME = os.getenv("MQTT_USERNAME", "davidra")
-MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "davidra")
+RABBITMQ_BROKERS = os.getenv("RABBITMQ_BROKERS", "10.0.1.13").split(",")
+RABBITMQ_QUEUE = os.getenv("RABBITMQ_QUEUE", "/cam/h264/cam13")
+RABBITMQ_USER = os.getenv("RABBITMQ_USER", "davidra")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "davidra")
 
-KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+KAFKA_BOOTSTRAP_SERVERS = os.getenv(
+    "KAFKA_BOOTSTRAP_SERVERS",
+    "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092",
+)
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "input.images")
 
 RUNNING = True
 PRODUCER = None
+
 
 # -------------------------
 # Graceful Shutdown
@@ -28,8 +32,10 @@ def shutdown_handler(signum, frame):
     print("Shutdown signal received...")
     RUNNING = False
 
+
 signal.signal(signal.SIGTERM, shutdown_handler)
 signal.signal(signal.SIGINT, shutdown_handler)
+
 
 # -------------------------
 # Kafka Producer Initialization
@@ -57,11 +63,14 @@ def init_kafka_producer():
             time.sleep(5)
         except Exception as e:
             retry_count += 1
-            print(f"Error connecting to Kafka (attempt {retry_count}/{max_retries}): {e}")
+            print(
+                f"Error connecting to Kafka (attempt {retry_count}/{max_retries}): {e}"
+            )
             time.sleep(5)
 
     print("Failed to connect to Kafka after max retries")
     return False
+
 
 # -------------------------
 # MQTT Callbacks
@@ -69,9 +78,10 @@ def init_kafka_producer():
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print(f"[MQTT] Connected successfully to {userdata['broker']}")
-        client.subscribe(MQTT_TOPIC, qos=1)
+        client.subscribe(RABBITMQ_QUEUE, qos=1)
     else:
         print(f"[MQTT] Connection failed with code {rc}")
+
 
 def on_message(client, userdata, msg):
     try:
@@ -81,19 +91,26 @@ def on_message(client, userdata, msg):
         # Envoi direct à Kafka
         PRODUCER.send(KAFKA_TOPIC, value=msg.payload)
         PRODUCER.flush()
-        print(f"[MQTT -> Kafka] Forwarded message from topic {msg.topic} ({len(msg.payload)} bytes)")
+        print(
+            f"[MQTT -> Kafka] Forwarded message from topic {msg.topic} ({len(msg.payload)} bytes)"
+        )
 
     except Exception as e:
         print(f"[ERROR] Failed to forward message: {e}")
+
 
 # -------------------------
 # MQTT Consumer Loop
 # -------------------------
 def consume_mqtt():
     clients = []
-    for broker in MQTT_BROKERS:
-        client = mqtt.Client(client_id=f"mqtt2kafka-{broker}", clean_session=False, userdata={"broker": broker})
-        client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+    for broker in RABBITMQ_BROKERS:
+        client = mqtt.Client(
+            client_id=f"mqtt2kafka-{broker}",
+            clean_session=False,
+            userdata={"broker": broker},
+        )
+        client.username_pw_set(RABBITMQ_USER, RABBITMQ_PASSWORD)
         client.on_connect = on_connect
         client.on_message = on_message
         try:
@@ -117,6 +134,7 @@ def consume_mqtt():
             PRODUCER.close()
         print("Shutdown complete")
         sys.exit(0)
+
 
 # -------------------------
 # Main
