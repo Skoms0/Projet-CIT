@@ -9,7 +9,9 @@ import paho.mqtt.client as mqtt
 # -------------------------
 # Configuration (ENV VARS)
 # -------------------------
-RABBITMQ_BROKERS = os.getenv("RABBITMQ_BROKERS", "10.0.1.13").split(",")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq.default.svc.cluster.local")
+RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "1883"))
+RABBITMQ_BROKERS = [RABBITMQ_HOST]
 RABBITMQ_QUEUE = os.getenv("RABBITMQ_QUEUE", "/cam/h264/cam13")
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "davidra")
 RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "davidra")
@@ -114,7 +116,7 @@ def consume_mqtt():
         client.on_connect = on_connect
         client.on_message = on_message
         try:
-            client.connect(broker, 1883, 60)
+            client.connect(broker, RABBITMQ_PORT, 60)
             client.loop_start()
             clients.append(client)
         except Exception as e:
