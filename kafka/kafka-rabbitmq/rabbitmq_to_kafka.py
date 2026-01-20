@@ -2,9 +2,9 @@ import os
 import signal
 import sys
 import time
+import pika
 from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable
-import paho.mqtt.client as mqtt
 
 # -------------------------
 # Configuration (ENV VARS)
@@ -21,18 +21,24 @@ KAFKA_BOOTSTRAP_SERVERS = os.getenv(
     "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092",
 )
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "input.images")
+PREFETCH_COUNT = int(os.getenv("PREFETCH_COUNT", 10))
 
 RUNNING = True
 PRODUCER = None
+AMQP_CONNECTION = None
+AMQP_CHANNEL = None
 
 
 # -------------------------
 # Graceful Shutdown
 # -------------------------
 def shutdown_handler(signum, frame):
-    global RUNNING
+    global RUNNING, AMQP_CHANNEL
     print("Shutdown signal received...")
     RUNNING = False
+    if AMQP_CHANNEL and AMQP_CHANNEL.is_open:
+        print("[AMQP] Stopping consumption...")
+        AMQP_CHANNEL.stop_consuming()
 
 
 signal.signal(signal.SIGTERM, shutdown_handler)
@@ -75,7 +81,7 @@ def init_kafka_producer():
 
 
 # -------------------------
-# MQTT Callbacks
+# AMQP Callback
 # -------------------------
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -99,10 +105,12 @@ def on_message(client, userdata, msg):
 
     except Exception as e:
         print(f"[ERROR] Failed to forward message: {e}")
+        # Nack so another pod can try
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
 
 # -------------------------
-# MQTT Consumer Loop
+# AMQP Consumer Loop
 # -------------------------
 def consume_mqtt():
     clients = []
@@ -124,14 +132,47 @@ def consume_mqtt():
 
     # Boucle principale de maintien
     try:
-        while RUNNING:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
+        print(f"[AMQP] Connecting to {AMQP_HOST}:{AMQP_PORT} as {AMQP_USERNAME}...")
+        credentials = pika.PlainCredentials(AMQP_USERNAME, AMQP_PASSWORD)
+        parameters = pika.ConnectionParameters(
+            host=AMQP_HOST, 
+            port=AMQP_PORT, 
+            credentials=credentials,
+            heartbeat=600,
+            blocked_connection_timeout=300
+        )
+        
+        AMQP_CONNECTION = pika.BlockingConnection(parameters)
+        AMQP_CHANNEL = AMQP_CONNECTION.channel()
+
+        # 1. Declare Queue
+        # We use a static name so all 3 replicas read from the SAME queue (Load Balancing)
+        AMQP_CHANNEL.queue_declare(queue=AMQP_QUEUE_NAME, durable=True)
+
+        # 2. Bind Queue to 'amq.topic'
+        # The MQTT plugin forwards all messages to the 'amq.topic' exchange.
+        # We bind our queue to that exchange using the converted binding key (dots instead of slashes).
+        print(f"[AMQP] Binding queue '{AMQP_QUEUE_NAME}' to exchange 'amq.topic' with key '{AMQP_BINDING_KEY}'")
+        AMQP_CHANNEL.queue_bind(
+            exchange='amq.topic', 
+            queue=AMQP_QUEUE_NAME, 
+            routing_key=AMQP_BINDING_KEY
+        )
+
+        # 3. QoS
+        AMQP_CHANNEL.basic_qos(prefetch_count=PREFETCH_COUNT)
+
+        # 4. Start Consuming
+        AMQP_CHANNEL.basic_consume(queue=AMQP_QUEUE_NAME, on_message_callback=on_message)
+        
+        print("[AMQP] Waiting for messages...")
+        AMQP_CHANNEL.start_consuming()
+
+    except Exception as e:
+        print(f"[ERROR] AMQP Connection failed: {e}")
     finally:
-        for client in clients:
-            client.loop_stop()
-            client.disconnect()
+        if AMQP_CONNECTION and AMQP_CONNECTION.is_open:
+            AMQP_CONNECTION.close()
         if PRODUCER:
             PRODUCER.close()
         print("Shutdown complete")
@@ -144,4 +185,4 @@ def consume_mqtt():
 if __name__ == "__main__":
     if not init_kafka_producer():
         sys.exit(1)
-    consume_mqtt()
+    consume_amqp()
