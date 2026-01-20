@@ -141,7 +141,7 @@ spec:
             - name: config-volume
               mountPath: /etc/rabbitmq/enabled_plugins
               subPath: enabled_plugins
-            - name: rabbitmq-data-host
+            - name: rabbitmq-data-ephemeral
               mountPath: /var/lib/rabbitmq
       volumes:
         - name: config-volume
