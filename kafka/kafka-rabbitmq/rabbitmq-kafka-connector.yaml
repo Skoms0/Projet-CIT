@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: connector
-          image: rabbitmq-kafka-connector:latest
+          image: 10.0.1.56:5000/rabbitmq-kafka-connector:1.0.4
           imagePullPolicy: IfNotPresent
           env:
             - name: RABBITMQ_HOST
@@ -23,13 +23,13 @@ spec:
             - name: RABBITMQ_PORT
               value: "5672"
             - name: RABBITMQ_BROKERS
-              value: "10.0.1.13"
+              value: "rabbitmq-mqtt"
             - name: RABBITMQ_USER
               value: "davidra"
             - name: RABBITMQ_PASSWORD
               value: "davidra"
             - name: RABBITMQ_QUEUE
-              value: "cam/h264/#"
+              value: "/cam/h264/#"
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092"
             - name: KAFKA_TOPIC
