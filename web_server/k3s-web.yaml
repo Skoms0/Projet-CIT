@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: kafka-web-combo
-          image: grouquet/kafka-web-combo:latest
+          image: 10.0.1.56:5000/kafka-web-combo:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
