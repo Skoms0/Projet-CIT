@@ -7,7 +7,7 @@ spec:
   type: Python
   mode: cluster
   pythonVersion: "3"
-  image: tensorflow-app:latest
+  image: 10.0.1.56:5000/tensorflow-app:latest
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark-apps/spark.py
   sparkVersion: "3.5.0"
