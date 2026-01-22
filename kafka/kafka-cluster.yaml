@@ -96,4 +96,3 @@ spec:
   config:
     cleanup.policy: compact
     segment.ms: 60000 # segmentation frequency (optionnal)
-    log.cleaner.backoff.ms: 1000
