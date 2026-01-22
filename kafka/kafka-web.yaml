@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: akhq
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: akhq
+  template:
+    metadata:
+      labels:
+        app: akhq
+    spec:
+      containers:
+        - name: akhq
+          image: tchiotludo/akhq:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: AKHQ_CONFIGURATION
+              value: |
+                akhq:
+                  connections:
+                    my-kafka:
+                      properties:
+                        bootstrap.servers: "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092"
+                      connectTimeout: 10000
+                      readTimeout: 10000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: akhq
+  namespace: default
+spec:
+  selector:
+    app: akhq
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 31273
+
