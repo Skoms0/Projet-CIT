@@ -18,6 +18,10 @@ if [ -f /usr/local/bin/k3s-uninstall.sh ]; then
   sudo /usr/local/bin/k3s-uninstall.sh
 fi
 
+# Supprime les images existantes pour être sûr d'avoir la dernière version (car on utilise les tag "latest")
+docker images "10.0.1.56:5000/tensorflow-app" -q | xargs -r docker rmi
+docker images "10.0.1.56:5000/rabbitmq-kafka-connector" -q | xargs -r docker rmi
+
 # Installation AGENT
 sudo curl -sfL https://get.k3s.io | \
   INSTALL_K3S_EXEC="agent" \
