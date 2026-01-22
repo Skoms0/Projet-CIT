@@ -7,7 +7,7 @@ import tflite_runtime.interpreter as tflite
 # Chargement du modèle TensorFlow Lite
 def build_interpreter(model_path: str, num_threads=4):
 
-    interpreter = tf.lite.Interpreter(model_path=model_path, num_threads=num_threads)
+    interpreter = tflite.Interpreter(model_path=model_path, num_threads=num_threads)
     interpreter.allocate_tensors()
     return interpreter 
 
