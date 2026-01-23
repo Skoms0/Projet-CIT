@@ -22,7 +22,7 @@ spec:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092"
             - name: KAFKA_TOPIC
-              value: "test2"
+              value: "processed.frames"
             - name: GROUP_ID
               value: "consumer-images-only"
             # Dans le même conteneur, localhost pointe vers Flask
