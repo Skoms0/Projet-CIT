@@ -1,13 +1,13 @@
 apiVersion: sparkoperator.k8s.io/v1beta2
 kind: SparkApplication
 metadata:
-  name: kafka-consumer
+  name: kafka-consumer-2
   namespace: default
 spec:
   type: Python
   mode: cluster
   pythonVersion: "3"
-  image: 10.0.1.56:5000/tensorflow-app:latest
+  image: 10.0.1.56:5000/tensorflow-app:2.0.0
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark-apps/spark.py
   sparkVersion: "3.5.0"

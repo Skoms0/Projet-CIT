@@ -28,6 +28,16 @@ spec:
             # Dans le même conteneur, localhost pointe vers Flask
             - name: WEB_SERVER_URL
               value: "http://localhost:5000/api/data"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: web-disallowed
+                operator: NotIn
+                values:
+                - "true"
+
 ---
 apiVersion: v1
 kind: Service
