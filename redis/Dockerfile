@@ -1,14 +1,14 @@
-# Choisir l'image Python ARM-friendly
 FROM python:3.11-alpine
 
 WORKDIR /app
 
-# Copier les dépendances et installer
+# Installer les dépendances de compilation pour confluent-kafka
+RUN apk add --no-cache gcc musl-dev python3-dev librdkafka-dev make
+
+# Copier requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le script
 COPY kafka-ingestor.py .
 
-# Exécuter le connecteur
 CMD ["python", "-u", "kafka-ingestor.py"]
