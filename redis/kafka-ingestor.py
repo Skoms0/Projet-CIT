@@ -5,7 +5,7 @@ import os
 r = redis.Redis(host="redis", port=6379)
 
 consumer = Consumer({
-    "bootstrap.servers": os.getenv("KAFKA_BOOTSTRAP_SERVERS"),
+    "bootstrap.servers": "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092",
     "group.id": "frame-ingestor",
     "auto.offset.reset": "latest"
 })
