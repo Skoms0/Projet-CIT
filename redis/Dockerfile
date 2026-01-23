@@ -1,13 +1,17 @@
-FROM python:3.11-alpine
+FROM python:3.10-slim
+
+# Dépendances système utiles à confluent-kafka (librdkafka)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    librdkafka-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Installer les dépendances de compilation pour confluent-kafka
-RUN apk add --no-cache gcc musl-dev python3-dev librdkafka-dev make
+COPY requirements.txt ./requirements.txt
 
-# Copier requirements
-COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
 
 COPY kafka-ingestor.py .
 
