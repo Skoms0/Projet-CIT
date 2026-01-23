@@ -52,7 +52,7 @@ spec:
         image: 10.0.1.56:5000/kafka-ingestor:1.0.0
         env:
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka:9092"
+          value: "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092"
         - name: KAFKA_TOPIC
           value: "processed.frames"
         - name: KAFKA_GROUP_ID
