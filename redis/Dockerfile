@@ -1,3 +1,6 @@
+# Choisir l'image Python ARM-friendly
+FROM python:3.11-alpine
+
 WORKDIR /app
 
 # Copier les dépendances et installer
