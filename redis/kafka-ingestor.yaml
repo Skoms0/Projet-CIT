@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
       - name: kafka-ingestor
-        image: your-dockerhub/kafka-ingestor:latest
+        image: 10.0.1.56:5000/kafka-ingestor:1.0.0
         env:
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "kafka:9092"
