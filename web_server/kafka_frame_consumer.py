@@ -36,7 +36,7 @@ WEB_SERVER_URL = os.getenv("WEB_SERVER_URL", "http://localhost:5000/api/data")
 def create_consumer():
     config = {
         "bootstrap.servers": KAFKA_BOOTSTRAP_SERVERS,
-        "group.id": GROUP_ID,
+        #"group.id": GROUP_ID,
         "auto.offset.reset": "latest" #pour prendre les dernières frames reçus par le topic sion --> earliest
     }
     consumer = Consumer(config)
