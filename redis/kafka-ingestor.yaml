@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-frame-ingestor
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ingestor }
+  template:
+    metadata:
+      labels: { app: ingestor }
+    spec:
+      containers:
+      - name: ingestor
+        image: your/kafka-ingestor:latest
