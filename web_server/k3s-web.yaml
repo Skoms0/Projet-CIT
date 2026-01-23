@@ -20,7 +20,7 @@ spec:
             - containerPort: 5000
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka:9092"
+              value: "my-cluster-kafka-bootstrap.default.svc.cluster.local:9092"
             - name: KAFKA_TOPIC
               value: "test2"
             - name: GROUP_ID
