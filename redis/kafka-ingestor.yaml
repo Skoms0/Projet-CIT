@@ -1,15 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kafka-frame-ingestor
+  name: redis
 spec:
   replicas: 1
   selector:
-    matchLabels: { app: ingestor }
+    matchLabels:
+      app: redis
   template:
     metadata:
-      labels: { app: ingestor }
+      labels:
+        app: redis
     spec:
       containers:
-      - name: ingestor
-        image: your/kafka-ingestor:latest
+      - name: redis
+        image: redis:7-alpine  # compatible ARM
+        ports:
+        - containerPort: 6379
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ingestor
+spec:
+  replicas: 1  # toujours 1 pod
+  selector:
+    matchLabels:
+      app: kafka-ingestor
+  template:
+    metadata:
+      labels:
+        app: kafka-ingestor
+    spec:
+      containers:
+      - name: kafka-ingestor
+        image: your-dockerhub/kafka-ingestor:latest
+        env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka:9092"
+        - name: KAFKA_TOPIC
+          value: "processed.frames"
+        - name: KAFKA_GROUP_ID
+          value: "frame-ingestor"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_KEY
+          value: "latest_frame"
