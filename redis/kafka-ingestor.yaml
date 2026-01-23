@@ -63,3 +63,13 @@ spec:
           value: "6379"
         - name: REDIS_KEY
           value: "latest_frame"
+       affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: web-disallowed
+                operator: NotIn
+                values:
+                - "true"
+
