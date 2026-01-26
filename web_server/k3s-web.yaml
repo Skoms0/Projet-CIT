@@ -24,7 +24,9 @@ spec:
             - name: KAFKA_TOPIC
               value: "processed.frames"
             - name: GROUP_ID
-              value: "consumer-images-only"
+              valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
             # Dans le même conteneur, localhost pointe vers Flask
             - name: WEB_SERVER_URL
               value: "http://localhost:5000/api/data"
